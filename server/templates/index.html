@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Air Quality Management Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: #0f172a;
+    color: #f8fafc;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .container {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: 0.5px;
+  }
+  .header p {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+  
+  .hero-value {
+    text-align: center;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 20px;
+  }
+  .main-number {
+    font-size: 54px;
+    font-weight: 700;
+    line-height: 1;
+    color: #ffffff;
+  }
+  .unit {
+    font-size: 16px;
+    color: #94a3b8;
+    font-weight: 400;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .card-box {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    border-left: 4px solid #38bdf8;
+    line-height: 1.5;
+  }
+  .card-box.warning { border-left-color: #ef4444; }
+  .card-box.info { border-left-color: #0284c7; }
+  .card-box strong { color: #f1f5f9; display: block; margin-bottom: 4px; }
+
+  .data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .grid-item {
+    background: rgba(15, 23, 42, 0.5);
+    padding: 14px;
+    border-radius: 14px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .grid-item .label { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+  .grid-item .val { font-size: 20px; font-weight: 700; color: #f8fafc; }
+
+  .control-section {
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 16px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .control-row:last-child { margin-bottom: 0; }
+  .control-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .control-sub { font-size: 11px; color: #64748b; font-weight: 400; display: block; }
+
+  /* Switch styling */
+  .switch { position: relative; display: inline-block; width: 56px; height: 30px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #334155; transition: .3s; border-radius: 34px;
+  }
+  .slider:before {
+    position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px;
+    background-color: white; transition: .3s; border-radius: 50%;
+  }
+  
+  #modeSwitch:checked + .slider { background-color: #ec4899; }
+  #modeSwitch:checked + .slider:before { transform: translateX(26px); }
+
+  #motorSwitch:checked + .slider { background-color: #22c55e; }
+  #motorSwitch:checked + .slider:before { transform: translateX(26px); }
+
+  .disabled-row { opacity: 0.4; pointer-events: none; }
+
+  .status-on { color: #22c55e; font-weight: 700; }
+  .status-off { color: #ef4444; font-weight: 700; }
+  .mode-auto { color: #38bdf8; font-weight: 700; }
+  .mode-manual { color: #ec4899; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Air Quality Host Server</h1>
+    <p>Raspberry Pi Touchscreen Management Dashboard</p>
+  </div>
+
+  <div class="hero-value">
+    <div class="main-number"><span id="pm25">--</span> <span class="unit">µg/m³</span></div>
+    <div id="aqi-badge" class="badge" style="background: #475569;">Initializing...</div>
+  </div>
+
+  <div class="card-box info">
+    <strong>Health Precaution:</strong>
+    <div id="precaution-text">Awaiting sensor data payload...</div>
+  </div>
+
+  <div class="card-box" id="mode-notice-box">
+    <strong>System Operation Notice:</strong>
+    <div id="mode-precaution-text">Loading mode info...</div>
+  </div>
+
+  <div class="data-grid">
+    <div class="grid-item">
+      <div class="label">PM1.0 Fine Dust</div>
+      <div class="val"><span id="pm1">--</span> µg/m³</div>
+    </div>
+    <div class="grid-item">
+      <div class="label">PM10 Coarse Dust</div>
+      <div class="val"><span id="pm10">--</span> µg/m³</div>
+    </div>
+    <div class="grid-item">
+      <div class="label">System Mode</div>
+      <div class="val"><span id="sys-mode">--</span></div>
+    </div>
+    <div class="grid-item">
+      <div class="label">Motor Relay</div>
+      <div class="val"><span id="motor">--</span></div>
+    </div>
+  </div>
+
+  <div class="control-section">
+    <div class="control-row">
+      <div>
+        <span class="control-label">Manual Mode Override</span>
+        <span class="control-sub">Disable automated safety triggers</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="modeSwitch" onclick="changeMode(this)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="control-row" id="motorCtrlRow">
+      <div>
+        <span class="control-label">Manual Motor Control</span>
+        <span class="control-sub">Toggle relay output pin directly</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="motorSwitch" onclick="toggleMotor(this)">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<script>
+function changeMode(element) {
+  let mode = element.checked ? 1 : 0;
+  fetch("/setMode?manual=" + mode)
+    .then(res => res.json())
+    .then(d => updateUI(d));
+}
+
+function toggleMotor(element) {
+  let state = element.checked ? 1 : 0;
+  fetch("/toggleMotor?state=" + state)
+    .then(res => res.json())
+    .then(d => updateUI(d));
+}
+
+function updateUI(d) {
+  document.getElementById("pm25").innerHTML = d.pm2_5;
+  document.getElementById("pm1").innerHTML = d.pm1_0;
+  document.getElementById("pm10").innerHTML = d.pm10;
+
+  let modeText = document.getElementById("sys-mode");
+  let modeSwitch = document.getElementById("modeSwitch");
+  let motorRow = document.getElementById("motorCtrlRow");
+  let modePrecText = document.getElementById("mode-precaution-text");
+  let modeNoticeBox = document.getElementById("mode-notice-box");
+
+  if(d.manual == 1) {
+    modeText.innerHTML = "MANUAL";
+    modeText.className = "mode-manual";
+    modeSwitch.checked = true;
+    motorRow.className = "control-row";
+    modeNoticeBox.className = "card-box warning";
+    modePrecText.innerHTML = "<b>Warning:</b> Automated threshold safety triggers are OFF. Manual override is active.";
+  } else {
+    modeText.innerHTML = "AUTO";
+    modeText.className = "mode-auto";
+    modeSwitch.checked = false;
+    motorRow.className = "control-row disabled-row";
+    modeNoticeBox.className = "card-box info";
+    modePrecText.innerHTML = "<b>Notice:</b> Automated protection running. Motor activates automatically if PM2.5 > " + (d.pm25_threshold || 200) + " µg/m³.";
+  }
+
+  let motorText = document.getElementById("motor");
+  let motorSwitch = document.getElementById("motorSwitch");
+  if(d.motor == 1) {
+    motorText.innerHTML = "ON";
+    motorText.className = "status-on";
+    motorSwitch.checked = true;
+  } else {
+    motorText.innerHTML = "OFF";
+    motorText.className = "status-off";
+    motorSwitch.checked = false;
+  }
+
+  let b = document.getElementById("aqi-badge");
+  let p = document.getElementById("precaution-text");
+  
+  if (d.aqi_label) {
+    b.innerHTML = d.aqi_label;
+    b.style.backgroundColor = d.aqi_color;
+    p.innerHTML = d.precaution;
+  } else {
+    let val = d.pm2_5;
+    if(val <= 50) {
+      b.innerHTML = "Good"; b.style.backgroundColor = "#4CAF50";
+      p.innerHTML = "Air quality is great! Safe to enjoy outdoor physical exercise.";
+    } else if(val <= 100) {
+      b.innerHTML = "Moderate"; b.style.backgroundColor = "#FF9800";
+      p.innerHTML = "Acceptable quality. Unusually sensitive people should limit heavy outdoor work.";
+    } else if(val <= 200) {
+      b.innerHTML = "Poor"; b.style.backgroundColor = "#F44336";
+      p.innerHTML = "Wear air masks outdoors. Sensitive individuals should remain inside.";
+    } else {
+      b.innerHTML = "Hazardous"; b.style.backgroundColor = "#730202";
+      p.innerHTML = "Hazardous air! Close all windows, run air filters, and keep motor running.";
+    }
+  }
+}
+
+setInterval(() => {
+  fetch("/data")
+    .then(res => res.json())
+    .then(d => updateUI(d))
+    .catch(err => console.log("Fetch error:", err));
+}, 1500);
+
+fetch("/data").then(res => res.json()).then(d => updateUI(d));
+</script>
+</body>
+</html>
