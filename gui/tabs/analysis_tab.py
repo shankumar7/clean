@@ -86,7 +86,12 @@ class AnalysisTab(QWidget):
         if PYQTGRAPH_AVAILABLE:
             self.plot_widget = pg.PlotWidget()
             self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
-            self.plot_widget.setYRange(0, 300)
+            
+            # Enable automatic scaling and disable manual mouse scrolling/panning
+            self.plot_widget.enableAutoRange(axis=pg.ViewBox.XYAxes)
+            self.plot_widget.setMouseEnabled(x=False, y=False)
+            self.plot_widget.setMenuEnabled(False)
+            
             self.pm25_curve = self.plot_widget.plot(pen=pg.mkPen(color='#00b4d8', width=2), name="PM2.5")
             self.pm10_curve = self.plot_widget.plot(pen=pg.mkPen(color='#ec4899', width=2), name="PM10")
             chart_layout.addWidget(self.plot_widget)
