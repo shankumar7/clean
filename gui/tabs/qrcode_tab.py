@@ -1,5 +1,5 @@
 """
-Tab 3: Mobile Remote Web Portal Access & Dynamic QR Code Display (Optimized for 5" Displays).
+Tab 3: Mobile Remote Web Portal Access & Dynamic QR Code Display (With Theme Support).
 """
 
 import socket
@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from gui.components.qr_widget import QRCodeWidget
+from gui.theme import ThemeManager
 import config
 
 
@@ -59,29 +60,20 @@ class QRCodeTab(QWidget):
         content_layout.setSpacing(8)
         
         # Header
-        title_lbl = QLabel("MOBILE REMOTE MANAGEMENT PORTAL")
-        title_lbl.setStyleSheet("color: #38bdf8; font-size: 12px; font-weight: bold; letter-spacing: 0.5px;")
-        sub_lbl = QLabel("Scan QR code with smartphone to manage project over local Wi-Fi.")
-        sub_lbl.setStyleSheet("color: #94a3b8; font-size: 10px;")
-        sub_lbl.setWordWrap(True)
+        self.title_lbl = QLabel("MOBILE REMOTE MANAGEMENT PORTAL")
+        self.sub_lbl = QLabel("Scan QR code with smartphone to manage project over local Wi-Fi.")
+        self.sub_lbl.setWordWrap(True)
         
-        content_layout.addWidget(title_lbl)
-        content_layout.addWidget(sub_lbl)
+        content_layout.addWidget(self.title_lbl)
+        content_layout.addWidget(self.sub_lbl)
         
         # Central Section
-        card_frame = QFrame()
-        card_frame.setStyleSheet("""
-            QFrame {
-                background-color: rgba(30, 41, 59, 0.85);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-            }
-        """)
-        card_layout = QHBoxLayout(card_frame)
+        self.card_frame = QFrame()
+        card_layout = QHBoxLayout(self.card_frame)
         card_layout.setContentsMargins(12, 10, 12, 10)
         card_layout.setSpacing(10)
         
-        # Left side: QR Code Widget (size 160)
+        # Left side: QR Code Widget
         initial_url = f"http://{self.ip_addresses[0]}:{config.SERVER_PORT}"
         self.qr_widget = QRCodeWidget(url=initial_url)
         card_layout.addWidget(self.qr_widget, stretch=0)
@@ -91,61 +83,77 @@ class QRCodeTab(QWidget):
         info_vbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info_vbox.setSpacing(6)
         
-        step1_lbl = QLabel("📱 1. Connect phone to same Wi-Fi.")
-        step1_lbl.setStyleSheet("color: #f8fafc; font-size: 11px;")
+        self.step1_lbl = QLabel("📱 1. Connect phone to same Wi-Fi.")
+        self.step2_lbl = QLabel("📷 2. Scan QR code with camera.")
+        self.step3_lbl = QLabel("🌐 3. Manage project on mobile.")
         
-        step2_lbl = QLabel("📷 2. Scan QR code with camera.")
-        step2_lbl.setStyleSheet("color: #f8fafc; font-size: 11px;")
+        info_vbox.addWidget(self.step1_lbl)
+        info_vbox.addWidget(self.step2_lbl)
+        info_vbox.addWidget(self.step3_lbl)
         
-        step3_lbl = QLabel("🌐 3. Manage project on mobile.")
-        step3_lbl.setStyleSheet("color: #f8fafc; font-size: 11px;")
-        
-        info_vbox.addWidget(step1_lbl)
-        info_vbox.addWidget(step2_lbl)
-        info_vbox.addWidget(step3_lbl)
-        
-        ip_lbl = QLabel("Web Server URL:")
-        ip_lbl.setStyleSheet("color: #38bdf8; font-size: 11px; font-weight: bold;")
+        self.ip_lbl = QLabel("Web Server URL:")
         
         self.ip_combo = QComboBox()
         self.ip_combo.setMinimumHeight(30)
-        self.ip_combo.setStyleSheet("""
-            QComboBox {
-                background-color: #0f172a;
-                color: #ffffff;
-                border: 1px solid #38bdf8;
-                border-radius: 6px;
-                padding: 2px 6px;
-                font-size: 11px;
-                font-weight: bold;
-            }
-        """)
         self.ip_combo.currentIndexChanged.connect(self._on_ip_selected)
         self._populate_ips()
         
-        info_vbox.addWidget(ip_lbl)
+        info_vbox.addWidget(self.ip_lbl)
         info_vbox.addWidget(self.ip_combo)
         
         self.refresh_btn = QPushButton("🔄 Refresh IP")
         self.refresh_btn.setMinimumHeight(28)
-        self.refresh_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #1e293b;
-                color: #38bdf8;
-                border: 1px solid #38bdf8;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 10px;
-            }
-        """)
         self.refresh_btn.clicked.connect(self._refresh_network_ips)
         info_vbox.addWidget(self.refresh_btn)
         
         card_layout.addLayout(info_vbox, stretch=1)
-        content_layout.addWidget(card_frame)
+        content_layout.addWidget(self.card_frame)
         
         scroll.setWidget(scroll_content)
         main_layout.addWidget(scroll)
+        
+        self.apply_theme(ThemeManager.get_theme())
+
+    def apply_theme(self, theme):
+        self.title_lbl.setStyleSheet(f"color: {theme['accent']}; font-size: 12px; font-weight: bold; letter-spacing: 0.5px;")
+        self.sub_lbl.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 10px;")
+        
+        self.card_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {theme['card_bg']};
+                border: 1px solid {theme['card_border']};
+                border-radius: 12px;
+            }}
+        """)
+        self.qr_widget.apply_theme(theme)
+        
+        step_style = f"color: {theme['text_primary']}; font-size: 11px;"
+        self.step1_lbl.setStyleSheet(step_style)
+        self.step2_lbl.setStyleSheet(step_style)
+        self.step3_lbl.setStyleSheet(step_style)
+        
+        self.ip_lbl.setStyleSheet(f"color: {theme['accent']}; font-size: 11px; font-weight: bold;")
+        self.ip_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {theme['bg']};
+                color: {theme['text_primary']};
+                border: 1px solid {theme['accent']};
+                border-radius: 6px;
+                padding: 2px 6px;
+                font-size: 11px;
+                font-weight: bold;
+            }}
+        """)
+        self.refresh_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme['tab_bg']};
+                color: {theme['accent']};
+                border: 1px solid {theme['accent']};
+                border-radius: 6px;
+                font-weight: bold;
+                font-size: 10px;
+            }}
+        """)
 
     def _populate_ips(self):
         self.ip_combo.blockSignals(True)

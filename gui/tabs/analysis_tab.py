@@ -1,10 +1,11 @@
 """
-Tab 1: Live Analysis & Air Quality Dashboard (Optimized for 5" Displays).
+Tab 1: Live Analysis & Air Quality Dashboard (Optimized for 5" Displays & Theme Support).
 """
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout
 from PyQt6.QtCore import Qt
 from gui.components.cards import MetricCard, AQIBadge
+from gui.theme import ThemeManager
 
 try:
     import pyqtgraph as pg
@@ -23,33 +24,22 @@ class AnalysisTab(QWidget):
         main_layout.setSpacing(8)
         
         # Top Row: Hero PM2.5 Card + AQI Badge & Precautions
-        top_frame = QFrame()
-        top_frame.setStyleSheet("""
-            QFrame {
-                background-color: rgba(30, 41, 59, 0.85);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 14px;
-            }
-        """)
-        top_layout = QHBoxLayout(top_frame)
+        self.top_frame = QFrame()
+        top_layout = QHBoxLayout(self.top_frame)
         top_layout.setContentsMargins(12, 10, 12, 10)
         top_layout.setSpacing(10)
         
         # Hero Value PM2.5
         pm25_vbox = QVBoxLayout()
         pm25_vbox.setSpacing(2)
-        pm25_label = QLabel("PM 2.5 MAIN")
-        pm25_label.setStyleSheet("color: #38bdf8; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;")
+        self.pm25_label = QLabel("PM 2.5 MAIN")
         
         self.pm25_num = QLabel("--")
-        self.pm25_num.setStyleSheet("color: #ffffff; font-size: 38px; font-weight: bold; line-height: 1;")
+        self.pm25_unit = QLabel("µg/m³ (Fine Dust)")
         
-        pm25_unit = QLabel("µg/m³ (Fine Dust)")
-        pm25_unit.setStyleSheet("color: #94a3b8; font-size: 10px;")
-        
-        pm25_vbox.addWidget(pm25_label)
+        pm25_vbox.addWidget(self.pm25_label)
         pm25_vbox.addWidget(self.pm25_num)
-        pm25_vbox.addWidget(pm25_unit)
+        pm25_vbox.addWidget(self.pm25_unit)
         
         top_layout.addLayout(pm25_vbox, stretch=4)
         
@@ -66,15 +56,14 @@ class AnalysisTab(QWidget):
         
         self.precaution_lbl = QLabel("Air quality is great! Safe to enjoy outdoor physical exercise.")
         self.precaution_lbl.setWordWrap(True)
-        self.precaution_lbl.setStyleSheet("color: #e2e8f0; font-size: 11px; margin-top: 4px; line-height: 1.2;")
         
         info_vbox.addLayout(badge_hbox)
         info_vbox.addWidget(self.precaution_lbl)
         
         top_layout.addLayout(info_vbox, stretch=6)
-        main_layout.addWidget(top_frame)
+        main_layout.addWidget(self.top_frame)
         
-        # Middle Row: Metric Cards Grid (2x2 layout for 5-inch screen fit)
+        # Middle Row: Metric Cards Grid
         grid_layout = QGridLayout()
         grid_layout.setSpacing(6)
         
@@ -90,26 +79,16 @@ class AnalysisTab(QWidget):
         
         main_layout.addLayout(grid_layout)
         
-        # Bottom Row: Compact Real-time Trend Chart
-        chart_frame = QFrame()
-        chart_frame.setStyleSheet("""
-            QFrame {
-                background-color: rgba(15, 23, 42, 0.85);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-            }
-        """)
-        chart_layout = QVBoxLayout(chart_frame)
+        # Bottom Row: Trend Chart
+        self.chart_frame = QFrame()
+        chart_layout = QVBoxLayout(self.chart_frame)
         chart_layout.setContentsMargins(8, 6, 8, 6)
         chart_layout.setSpacing(4)
         
-        chart_title = QLabel("LIVE PARTICULATE CONCENTRATION TREND")
-        chart_title.setStyleSheet("color: #94a3b8; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;")
-        chart_layout.addWidget(chart_title)
+        self.chart_title = QLabel("LIVE PARTICULATE CONCENTRATION TREND")
+        chart_layout.addWidget(self.chart_title)
         
         if PYQTGRAPH_AVAILABLE:
-            pg.setConfigOption('background', '#0f172a')
-            pg.setConfigOption('foreground', '#94a3b8')
             self.plot_widget = pg.PlotWidget()
             self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
             self.plot_widget.setYRange(0, 300)
@@ -119,10 +98,42 @@ class AnalysisTab(QWidget):
         else:
             fallback_lbl = QLabel("Live Trend Chart")
             fallback_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            fallback_lbl.setStyleSheet("color: #64748b; font-size: 11px;")
             chart_layout.addWidget(fallback_lbl)
 
-        main_layout.addWidget(chart_frame, stretch=1)
+        main_layout.addWidget(self.chart_frame, stretch=1)
+        
+        # Apply current theme
+        self.apply_theme(ThemeManager.get_theme())
+
+    def apply_theme(self, theme):
+        self.top_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {theme['card_bg']};
+                border: 1px solid {theme['card_border']};
+                border-radius: 14px;
+            }}
+        """)
+        self.pm25_label.setStyleSheet(f"color: {theme['accent']}; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;")
+        self.pm25_num.setStyleSheet(f"color: {theme['text_primary']}; font-size: 38px; font-weight: bold;")
+        self.pm25_unit.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 10px;")
+        self.precaution_lbl.setStyleSheet(f"color: {theme['text_primary']}; font-size: 11px; margin-top: 4px; line-height: 1.2;")
+        
+        self.pm1_card.apply_theme(theme)
+        self.pm10_card.apply_theme(theme)
+        self.mode_card.apply_theme(theme)
+        self.motor_card.apply_theme(theme)
+        
+        self.chart_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {theme['card_bg']};
+                border: 1px solid {theme['card_border']};
+                border-radius: 12px;
+            }}
+        """)
+        self.chart_title.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;")
+        
+        if PYQTGRAPH_AVAILABLE:
+            self.plot_widget.setBackground(theme['chart_bg'])
 
     def update_ui(self, state):
         self.pm25_num.setText(str(state["pm2_5"]))

@@ -1,38 +1,26 @@
 """
-PyQt component widgets for touchscreen metric cards & status badges (Optimized for 5" displays).
+PyQt component widgets for touchscreen metric cards & status badges with Theme support.
 """
 
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt6.QtCore import Qt
+from gui.theme import ThemeManager
 
 
 class MetricCard(QFrame):
-    """Compact card displaying a metric title, numeric value, and unit."""
+    """Compact card displaying a metric title, numeric value, and unit with theme support."""
     def __init__(self, title, unit="µg/m³", parent=None):
         super().__init__(parent)
         self.title_text = title
         self.unit_text = unit
-        
-        self.setStyleSheet("""
-            MetricCard {
-                background-color: rgba(30, 41, 59, 0.85);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-            }
-        """)
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 8, 10, 8)
         layout.setSpacing(2)
         
         self.title_lbl = QLabel(self.title_text.upper())
-        self.title_lbl.setStyleSheet("color: #94a3b8; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;")
-        
         self.value_lbl = QLabel("--")
-        self.value_lbl.setStyleSheet("color: #ffffff; font-size: 20px; font-weight: bold;")
-        
         self.unit_lbl = QLabel(self.unit_text)
-        self.unit_lbl.setStyleSheet("color: #64748b; font-size: 10px;")
         
         layout.addWidget(self.title_lbl)
         
@@ -44,9 +32,23 @@ class MetricCard(QFrame):
         val_layout.addStretch()
         
         layout.addLayout(val_layout)
+        
+        self.apply_theme(ThemeManager.get_theme())
 
     def set_value(self, val):
         self.value_lbl.setText(str(val))
+
+    def apply_theme(self, theme):
+        self.setStyleSheet(f"""
+            MetricCard {{
+                background-color: {theme['card_bg']};
+                border: 1px solid {theme['card_border']};
+                border-radius: 12px;
+            }}
+        """)
+        self.title_lbl.setStyleSheet(f"color: {theme['accent']}; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;")
+        self.value_lbl.setStyleSheet(f"color: {theme['text_primary']}; font-size: 20px; font-weight: bold;")
+        self.unit_lbl.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 10px;")
 
 
 class AQIBadge(QLabel):

@@ -1,17 +1,18 @@
 """
-Main PyQt6 Touchscreen Window & Tab Navigation Application (Optimized for 5" Displays).
+Main PyQt6 Touchscreen Window & Tab Navigation Application (With 🌙 Dark / ☀️ Light Mode Toggle).
 """
 
 import sys
 import time
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QTabBar, QFrame
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QTabBar, QFrame, QPushButton
 )
 from PyQt6.QtCore import Qt, QTimer
 from gui.tabs.analysis_tab import AnalysisTab
 from gui.tabs.control_tab import ControlTab
 from gui.tabs.qrcode_tab import QRCodeTab
 from gui.tabs.diagnostics_tab import DiagnosticsTab
+from gui.theme import ThemeManager
 
 
 class AirMonitorMainWindow(QMainWindow):
@@ -21,73 +22,41 @@ class AirMonitorMainWindow(QMainWindow):
         
         self.setWindowTitle("Raspberry Pi Air Quality Monitor & Host Server")
         self.resize(800, 480)  # Standard 5" Touchscreen Resolution (800x480)
-        self.setMinimumSize(480, 320)  # Compact 5" SPI fallback (480x320)
+        self.setMinimumSize(480, 320)
         
-        central_widget = QWidget()
-        central_widget.setStyleSheet("background-color: #0f172a; font-family: 'Outfit', sans-serif;")
-        self.setCentralWidget(central_widget)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
         
-        layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(6, 6, 6, 6)
-        layout.setSpacing(6)
+        self.layout = QVBoxLayout(self.central_widget)
+        self.layout.setContentsMargins(6, 6, 6, 6)
+        self.layout.setSpacing(6)
         
-        # Header Status Bar (Compact for 5" Screen)
-        header = QFrame()
-        header.setStyleSheet("""
-            QFrame {
-                background-color: rgba(30, 41, 59, 0.9);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 10px;
-            }
-        """)
-        header_layout = QHBoxLayout(header)
+        # Header Status Bar with Theme Toggle Button
+        self.header = QFrame()
+        header_layout = QHBoxLayout(self.header)
         header_layout.setContentsMargins(10, 4, 10, 4)
         
-        title_lbl = QLabel("AIR MONITOR & HOST SERVER")
-        title_lbl.setStyleSheet("color: #38bdf8; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;")
-        
+        self.title_lbl = QLabel("AIR MONITOR & HOST SERVER")
         self.clock_lbl = QLabel()
-        self.clock_lbl.setStyleSheet("color: #94a3b8; font-size: 11px; font-weight: bold;")
+        self.status_indicator = QLabel("● ONLINE")
         
-        status_indicator = QLabel("● ONLINE")
-        status_indicator.setStyleSheet("color: #22c55e; font-size: 10px; font-weight: bold; margin-right: 8px;")
+        # 🌙 / ☀️ Theme Toggle Button
+        self.theme_btn = QPushButton("🌙 Dark")
+        self.theme_btn.setMinimumHeight(28)
+        self.theme_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.theme_btn.clicked.connect(self._on_toggle_theme)
         
-        header_layout.addWidget(title_lbl)
+        header_layout.addWidget(self.title_lbl)
         header_layout.addStretch()
-        header_layout.addWidget(status_indicator)
+        header_layout.addWidget(self.theme_btn)
+        header_layout.addWidget(self.status_indicator)
         header_layout.addWidget(self.clock_lbl)
         
-        layout.addWidget(header)
+        self.layout.addWidget(self.header)
         
-        # Multi-Tab Navigation Widget (Compact Touch Styling)
+        # Multi-Tab Navigation Widget
         self.tabs = QTabWidget()
         self.tabs.setTabBar(TouchTabBar())
-        self.tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-                background: rgba(15, 23, 42, 0.6);
-            }
-            QTabBar::tab {
-                background: #1e293b;
-                color: #94a3b8;
-                font-size: 11px;
-                font-weight: bold;
-                padding: 8px 12px;
-                margin-right: 4px;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-                min-width: 90px;
-            }
-            QTabBar::tab:selected {
-                background: #38bdf8;
-                color: #0f172a;
-            }
-            QTabBar::tab:hover:!selected {
-                background: #334155;
-                color: #ffffff;
-            }
-        """)
         
         # Instantiate Tabs
         self.tab1_analysis = AnalysisTab(self.monitor)
@@ -100,7 +69,7 @@ class AirMonitorMainWindow(QMainWindow):
         self.tabs.addTab(self.tab3_qrcode, "📲 QR Portal")
         self.tabs.addTab(self.tab4_diagnostics, "🔧 Diagnostic")
         
-        layout.addWidget(self.tabs)
+        self.layout.addWidget(self.tabs)
         
         # UI Refresh Timer (1 second interval)
         self.timer = QTimer(self)
@@ -108,7 +77,78 @@ class AirMonitorMainWindow(QMainWindow):
         self.timer.start(1000)
         
         self.monitor.register_listener(self._on_state_changed)
+        ThemeManager.register_listener(self.apply_theme)
+        
+        self.apply_theme(ThemeManager.get_theme())
         self._update_clock()
+
+    def _on_toggle_theme(self):
+        new_theme = ThemeManager.toggle_theme()
+        if new_theme["mode"] == "dark":
+            self.theme_btn.setText("🌙 Dark")
+        else:
+            self.theme_btn.setText("☀️ Light")
+
+    def apply_theme(self, theme):
+        is_dark = (theme["mode"] == "dark")
+        self.theme_btn.setText("🌙 Dark" if is_dark else "☀️ Light")
+        
+        self.central_widget.setStyleSheet(f"background-color: {theme['bg']}; font-family: 'Outfit', sans-serif;")
+        
+        self.header.setStyleSheet(f"""
+            QFrame {{
+                background-color: {theme['header_bg']};
+                border: 1px solid {theme['card_border']};
+                border-radius: 10px;
+            }}
+        """)
+        self.title_lbl.setStyleSheet(f"color: {theme['accent']}; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;")
+        self.clock_lbl.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 11px; font-weight: bold;")
+        self.status_indicator.setStyleSheet("color: #22c55e; font-size: 10px; font-weight: bold; margin-right: 8px;")
+        
+        self.theme_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme['tab_bg']};
+                color: {theme['accent']};
+                border: 1px solid {theme['accent']};
+                border-radius: 6px;
+                padding: 2px 8px;
+                font-size: 10px;
+                font-weight: bold;
+            }}
+        """)
+        
+        self.tabs.setStyleSheet(f"""
+            QTabWidget::pane {{
+                border: 1px solid {theme['card_border']};
+                border-radius: 12px;
+                background: {theme['card_bg']};
+            }}
+            QTabBar::tab {{
+                background: {theme['tab_bg']};
+                color: {theme['tab_text']};
+                font-size: 11px;
+                font-weight: bold;
+                padding: 8px 12px;
+                margin-right: 4px;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                min-width: 90px;
+            }}
+            QTabBar::tab:selected {{
+                background: {theme['tab_selected_bg']};
+                color: {theme['tab_selected_text']};
+            }}
+            QTabBar::tab:hover:!selected {{
+                background: {theme['accent']};
+                color: #ffffff;
+            }}
+        """)
+        
+        self.tab1_analysis.apply_theme(theme)
+        self.tab2_control.apply_theme(theme)
+        self.tab3_qrcode.apply_theme(theme)
+        self.tab4_diagnostics.apply_theme(theme)
 
     def _on_timer_tick(self):
         self._update_clock()
@@ -126,7 +166,7 @@ class AirMonitorMainWindow(QMainWindow):
 
 
 class TouchTabBar(QTabBar):
-    """Custom TabBar with touch-friendly sizing for 5-inch screens."""
+    """Custom TabBar with touch-friendly sizing."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
