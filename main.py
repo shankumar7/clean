@@ -27,10 +27,29 @@ def main():
     if args.simulate:
         config.FORCE_SIMULATION = True
         
+    # ── CRITICAL FIXES FOR RASPBERRY PI OS BOOKWORM ──
+    # Bypass qt6ct platform theme loop bug
+    import os
+    os.environ["QT_QPA_PLATFORMTHEME"] = ""
+    os.environ["QT_STYLE_OVERRIDE"] = "Fusion"
+    if "DISPLAY" not in os.environ:
+        os.environ["DISPLAY"] = ":0"
+        
     print("=" * 60)
     print("  Raspberry Pi Air Quality Monitor & Host Web Server")
     print("=" * 60)
     
+    # CRITICAL: Create QApplication BEFORE any background threads are started
+    app = None
+    if not args.headless:
+        try:
+            from PyQt6.QtWidgets import QApplication
+            app = QApplication(sys.argv)
+            app.setApplicationName("Air Quality Monitor")
+            app.setStyle("Fusion")
+        except Exception as e:
+            print(f"[GUI] Qt init error: {e}")
+
     # 1. Initialize State Engine
     monitor_engine = AirQualityMonitor()
     
@@ -57,19 +76,15 @@ def main():
     signal.signal(signal.SIGTERM, cleanup_signal_handler)
     
     # 5. Start GUI or Headless Mode
-    if args.headless:
+    if args.headless or app is None:
         print("[System] Running in HEADLESS mode. Press Ctrl+C to stop.")
         signal.pause()
     else:
         try:
-            from PyQt6.QtWidgets import QApplication
             from gui.app import AirMonitorMainWindow
             
-            app = QApplication(sys.argv)
-            app.setApplicationName("Air Quality Monitor")
-            
             window = AirMonitorMainWindow(monitor_engine)
-            window.show()
+            window.showFullScreen()
             
             # Use Qt event loop
             exit_code = app.exec()
