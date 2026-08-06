@@ -33,6 +33,17 @@ class DiagnosticsTab(QWidget):
         
         main_layout.addLayout(top_hbox)
         
+        import socket
+        def get_ip():
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(("8.8.8.8", 80))
+                ip = s.getsockname()[0]
+                s.close()
+                return ip
+            except:
+                return "127.0.0.1"
+
         # Grid of hardware status cards
         grid_layout = QGridLayout()
         grid_layout.setSpacing(6)
@@ -49,10 +60,18 @@ class DiagnosticsTab(QWidget):
         self.card_status = MetricCard("System Engine", "")
         self.card_status.set_value("RUNNING")
         
+        self.card_ip = MetricCard("Host IP Address", "")
+        self.card_ip.set_value(get_ip())
+        
+        self.card_temp = MetricCard("CPU Temp", "")
+        self.card_temp.set_value("-- °C")
+        
         grid_layout.addWidget(self.card_serial, 0, 0)
         grid_layout.addWidget(self.card_gpio, 0, 1)
+        grid_layout.addWidget(self.card_ip, 0, 2)
         grid_layout.addWidget(self.card_port, 1, 0)
         grid_layout.addWidget(self.card_status, 1, 1)
+        grid_layout.addWidget(self.card_temp, 1, 2)
         
         main_layout.addLayout(grid_layout)
         
@@ -99,6 +118,8 @@ class DiagnosticsTab(QWidget):
         self.card_gpio.apply_theme(theme)
         self.card_port.apply_theme(theme)
         self.card_status.apply_theme(theme)
+        self.card_ip.apply_theme(theme)
+        self.card_temp.apply_theme(theme)
         
         self.log_frame.setStyleSheet(f"""
             QFrame {{
@@ -141,6 +162,14 @@ class DiagnosticsTab(QWidget):
         hrs, rem = divmod(elapsed, 3600)
         mins, secs = divmod(rem, 60)
         self.uptime_lbl.setText(f"Uptime: {hrs:02d}:{mins:02d}:{secs:02d}")
+        
+        # Update CPU Temp
+        try:
+            with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                temp_c = int(f.read().strip()) / 1000.0
+                self.card_temp.set_value(f"{temp_c:.1f} °C")
+        except:
+            self.card_temp.set_value("N/A")
         
         pm25 = state["pm2_5"]
         motor = "ON" if state["motor"] == 1 else "OFF"
