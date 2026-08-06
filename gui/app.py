@@ -46,9 +46,16 @@ class AirMonitorMainWindow(QMainWindow):
         self.theme_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.theme_btn.clicked.connect(self._on_toggle_theme)
         
+        # ❌ Exit Button
+        self.exit_btn = QPushButton("❌ Exit")
+        self.exit_btn.setMinimumHeight(28)
+        self.exit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.exit_btn.clicked.connect(self.close)
+        
         header_layout.addWidget(self.title_lbl)
         header_layout.addStretch()
         header_layout.addWidget(self.theme_btn)
+        header_layout.addWidget(self.exit_btn)
         header_layout.addWidget(self.status_indicator)
         header_layout.addWidget(self.clock_lbl)
         
@@ -115,6 +122,22 @@ class AirMonitorMainWindow(QMainWindow):
                 padding: 2px 8px;
                 font-size: 10px;
                 font-weight: bold;
+            }}
+        """)
+        
+        self.exit_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme['tab_bg']};
+                color: #ef4444;
+                border: 1px solid #ef4444;
+                border-radius: 6px;
+                padding: 2px 8px;
+                font-size: 10px;
+                font-weight: bold;
+            }}
+            QPushButton:pressed {{
+                background-color: #ef4444;
+                color: white;
             }}
         """)
         
