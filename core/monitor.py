@@ -71,8 +71,21 @@ class AirQualityMonitor:
         
         self._notify_listeners()
 
+    def _send_esp32_command(self, endpoint):
+        import urllib.request
+        import threading
+        def worker():
+            try:
+                urllib.request.urlopen(f"http://192.168.4.1/{endpoint}", timeout=2)
+            except Exception as e:
+                print(f"[AirQualityMonitor] Error sending command to ESP32: {e}")
+        threading.Thread(target=worker, daemon=True).start()
+
     def set_manual_mode(self, manual: bool):
         """Switch between AUTO (false) and MANUAL (true) modes."""
+        mode_val = 1 if manual else 0
+        self._send_esp32_command(f"setMode?manual={mode_val}")
+        
         with self._lock:
             self.manual_mode = bool(manual)
             # If returning to AUTO mode, re-evaluate safety trigger immediately
@@ -89,6 +102,9 @@ class AirQualityMonitor:
                 return False  # Rejected: Cannot manually set motor state in AUTO mode
             
             self._apply_motor_state(state)
+            
+        state_val = 1 if state else 0
+        self._send_esp32_command(f"toggleMotor?state={state_val}")
         
         self._notify_listeners()
         return True
