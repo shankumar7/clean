@@ -48,17 +48,12 @@ class DiagnosticsTab(QWidget):
         grid_layout = QGridLayout()
         grid_layout.setSpacing(6)
         
-        self.card_serial = MetricCard("PMS5003 UART", "")
-        self.card_serial.set_value(config.DEFAULT_SERIAL_PORT)
+        self.card_battery = MetricCard("Battery Level", "%")
+        self.card_vacuum = MetricCard("Vacuum Runtime", "")
+        self.card_filter = MetricCard("Filter Runtime", "")
         
         self.card_gpio = MetricCard("GPIO Relay Pin", "")
         self.card_gpio.set_value(f"GPIO {config.RELAY_GPIO_PIN}")
-        
-        self.card_port = MetricCard("Web Server Port", "")
-        self.card_port.set_value(str(config.SERVER_PORT))
-        
-        self.card_status = MetricCard("System Engine", "")
-        self.card_status.set_value("RUNNING")
         
         self.card_ip = MetricCard("Host IP Address", "")
         self.card_ip.set_value(get_ip())
@@ -66,14 +61,33 @@ class DiagnosticsTab(QWidget):
         self.card_temp = MetricCard("CPU Temp", "")
         self.card_temp.set_value("-- °C")
         
-        grid_layout.addWidget(self.card_serial, 0, 0)
-        grid_layout.addWidget(self.card_gpio, 0, 1)
-        grid_layout.addWidget(self.card_ip, 0, 2)
-        grid_layout.addWidget(self.card_port, 1, 0)
-        grid_layout.addWidget(self.card_status, 1, 1)
+        grid_layout.addWidget(self.card_battery, 0, 0)
+        grid_layout.addWidget(self.card_vacuum, 0, 1)
+        grid_layout.addWidget(self.card_filter, 0, 2)
+        grid_layout.addWidget(self.card_gpio, 1, 0)
+        grid_layout.addWidget(self.card_ip, 1, 1)
         grid_layout.addWidget(self.card_temp, 1, 2)
         
         main_layout.addLayout(grid_layout)
+        
+        # Filter Precaution & Action Box
+        self.filter_frame = QFrame()
+        filter_layout = QHBoxLayout(self.filter_frame)
+        filter_layout.setContentsMargins(12, 8, 12, 8)
+        
+        self.filter_lbl = QLabel("Filter Status: Checking...")
+        self.filter_lbl.setStyleSheet("font-weight: bold;")
+        
+        self.reset_filter_btn = QPushButton("Reset Filter Timer")
+        self.reset_filter_btn.setMinimumHeight(28)
+        self.reset_filter_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.reset_filter_btn.clicked.connect(self.monitor.reset_filter_runtime)
+        
+        filter_layout.addWidget(self.filter_lbl)
+        filter_layout.addStretch()
+        filter_layout.addWidget(self.reset_filter_btn)
+        
+        main_layout.addWidget(self.filter_frame)
         
         # Live Activity Log Console Box
         self.log_frame = QFrame()
@@ -114,12 +128,32 @@ class DiagnosticsTab(QWidget):
         self.title_lbl.setStyleSheet(f"color: {theme['accent']}; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;")
         self.uptime_lbl.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 10px; font-weight: bold;")
         
-        self.card_serial.apply_theme(theme)
+        self.card_battery.apply_theme(theme)
+        self.card_vacuum.apply_theme(theme)
+        self.card_filter.apply_theme(theme)
         self.card_gpio.apply_theme(theme)
-        self.card_port.apply_theme(theme)
-        self.card_status.apply_theme(theme)
         self.card_ip.apply_theme(theme)
         self.card_temp.apply_theme(theme)
+        
+        self.filter_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {theme['card_bg']};
+                border: 1px solid {theme['card_border']};
+                border-radius: 8px;
+            }}
+        """)
+        
+        self.reset_filter_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {theme['tab_bg']};
+                color: {theme['text_primary']};
+                border: 1px solid {theme['card_border']};
+                border-radius: 6px;
+                padding: 4px 12px;
+                font-size: 10px;
+                font-weight: bold;
+            }}
+        """)
         
         self.log_frame.setStyleSheet(f"""
             QFrame {{
@@ -170,6 +204,29 @@ class DiagnosticsTab(QWidget):
                 self.card_temp.set_value(f"{temp_c:.1f} °C")
         except:
             self.card_temp.set_value("N/A")
+            
+        bat = state.get("battery_pct", 0)
+        self.card_battery.set_value(str(bat))
+        
+        def format_runtime(sec):
+            hrs, rem = divmod(sec, 3600)
+            mins = rem // 60
+            return f"{hrs}h {mins:02d}m"
+            
+        vac_sec = state.get("motor_runtime_sec", 0)
+        fil_sec = state.get("filter_runtime_sec", 0)
+        
+        self.card_vacuum.set_value(format_runtime(vac_sec))
+        self.card_filter.set_value(format_runtime(fil_sec))
+        
+        # Filter Precautions (100 hours = 360,000 seconds)
+        FILTER_LIFESPAN_SEC = 100 * 3600
+        if fil_sec > FILTER_LIFESPAN_SEC:
+            self.filter_lbl.setText("⚠️ Filter Status: EXPIRED - PLEASE REPLACE")
+            self.filter_lbl.setStyleSheet("color: #ef4444; font-weight: bold;")
+        else:
+            self.filter_lbl.setText("✅ Filter Status: HEALTHY")
+            self.filter_lbl.setStyleSheet("color: #10b981; font-weight: bold;")
         
         pm25 = state["pm2_5"]
         motor = "ON" if state["motor"] == 1 else "OFF"

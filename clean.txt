@@ -19,6 +19,9 @@ HardwareSerial PMS(2);
 /* ---------- RELAY ---------- */
 #define RELAY_PIN 23   // Active LOW relay
 
+/* ---------- BATTERY ---------- */
+#define BATTERY_PIN 34 // Analog Pin for Battery Voltage Divider
+
 /* ---------- WEB SERVER ---------- */
 WebServer server(80);
 
@@ -247,12 +250,18 @@ void handleRoot() {
 }
 
 void handleData() {
+  // Read battery voltage and calculate percentage (Calibrate min/max ADC values as needed)
+  int raw_bat = analogRead(BATTERY_PIN);
+  int bat_pct = map(raw_bat, 2800, 4095, 0, 100);
+  bat_pct = constrain(bat_pct, 0, 100);
+
   String json = "{";
   json += "\"pm1_0\":" + String(pm1_0) + ",";
   json += "\"pm2_5\":" + String(pm2_5) + ",";
   json += "\"pm10\":"  + String(pm10) + ",";
   json += "\"motor\":" + String(motorState ? 1 : 0) + ",";
-  json += "\"manual\":" + String(manualMode ? 1 : 0);
+  json += "\"manual\":" + String(manualMode ? 1 : 0) + ",";
+  json += "\"battery_pct\":" + String(bat_pct);
   json += "}";
   server.send(200, "application/json", json);
 }

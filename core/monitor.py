@@ -16,7 +16,18 @@ class AirQualityMonitor:
         self.pm1_0 = 0
         self.pm2_5 = 0
         self.pm10 = 0
+        self.battery_pct = 0
         self.last_update_time = 0
+        
+        # Runtime Data
+        self.motor_runtime_sec = 0
+        self.filter_runtime_sec = 0
+        self.runtime_file = "runtime_data.json"
+        self._load_runtimes()
+        
+        # Start background runtime tracker
+        self.runtime_thread = threading.Thread(target=self._runtime_tracker, daemon=True)
+        self.runtime_thread.start()
         
         # Operational controls
         self.manual_mode = False       # False = AUTO, True = MANUAL
@@ -31,6 +42,48 @@ class AirQualityMonitor:
         
         # Change listeners (GUI callbacks)
         self._listeners = []
+
+    def _load_runtimes(self):
+        import json, os
+        if os.path.exists(self.runtime_file):
+            try:
+                with open(self.runtime_file, "r") as f:
+                    data = json.load(f)
+                    self.motor_runtime_sec = data.get("motor_runtime_sec", 0)
+                    self.filter_runtime_sec = data.get("filter_runtime_sec", 0)
+            except Exception as e:
+                print(f"[AirQualityMonitor] Error loading runtimes: {e}")
+                
+    def _save_runtimes(self):
+        import json
+        try:
+            with open(self.runtime_file, "w") as f:
+                json.dump({
+                    "motor_runtime_sec": self.motor_runtime_sec,
+                    "filter_runtime_sec": self.filter_runtime_sec
+                }, f)
+        except Exception as e:
+            print(f"[AirQualityMonitor] Error saving runtimes: {e}")
+
+    def _runtime_tracker(self):
+        ticks = 0
+        while True:
+            time.sleep(1)
+            if self.motor_state:
+                with self._lock:
+                    self.motor_runtime_sec += 1
+                    self.filter_runtime_sec += 1
+            
+            ticks += 1
+            if ticks >= 60:  # Save to disk every minute
+                self._save_runtimes()
+                ticks = 0
+                
+    def reset_filter_runtime(self):
+        with self._lock:
+            self.filter_runtime_sec = 0
+        self._save_runtimes()
+        self._notify_listeners()
 
     def register_listener(self, callback):
         """Register a callback function to be invoked on state updates."""
@@ -147,6 +200,9 @@ class AirQualityMonitor:
                 "motor": 1 if self.motor_state else 0,
                 "manual": 1 if self.manual_mode else 0,
                 "pm25_threshold": self.pm25_threshold,
+                "battery_pct": self.battery_pct,
+                "motor_runtime_sec": self.motor_runtime_sec,
+                "filter_runtime_sec": self.filter_runtime_sec,
                 "aqi_label": aqi["label"],
                 "aqi_color": aqi["color"],
                 "precaution": aqi["precaution"],

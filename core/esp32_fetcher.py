@@ -26,15 +26,17 @@ class ESP32Fetcher(threading.Thread):
                 pm10 = int(sensor_data.get('pm10', 0))
                 motor = int(sensor_data.get('motor', 0))
                 manual = int(sensor_data.get('manual', 0))
+                battery = int(sensor_data.get('battery_pct', 0))
                 
                 # Update the shared monitor engine so the GUI and Web Server see it
                 self.monitor.update_sensor_data(pm1_0, pm2_5, pm10)
                 
-                # Sync the motor and manual mode from the ESP32 (if it changed remotely)
+                # Sync the motor, manual mode, and battery from the ESP32 (if it changed remotely)
                 if hasattr(self.monitor, '_lock'):
                     with self.monitor._lock:
                         self.monitor.motor_state = (motor == 1)
                         self.monitor.manual_mode = (manual == 1)
+                        self.monitor.battery_pct = battery
                     # Use a private variable to avoid infinite loops, just notify listeners
                     self.monitor._notify_listeners()
                 
