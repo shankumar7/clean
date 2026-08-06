@@ -1,0 +1,16 @@
+[Unit]
+Description=Raspberry Pi Air Quality Monitor Touchscreen GUI & Host Web Server
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/Clean
+ExecStart=/usr/bin/python3 /home/pi/Clean/main.py
+Restart=always
+RestartSec=5
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+
+[Install]
+WantedBy=graphical.target
