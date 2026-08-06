@@ -1,0 +1,7 @@
+PyQt6>=6.4.0
+Flask>=2.2.0
+pyserial>=3.5
+qrcode>=7.3.1
+Pillow>=9.0.0
+pyqtgraph>=0.13.0
+gpiozero>=1.6.2
