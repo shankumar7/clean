@@ -1,5 +1,5 @@
 """
-Tab 3: Mobile Remote Web Portal Access & Dynamic QR Code Display (With Theme Support).
+Tab 3: Mobile Remote Web Portal Access & Dynamic QR Code Display (With Theme Contrast Fix).
 """
 
 import socket
@@ -135,13 +135,19 @@ class QRCodeTab(QWidget):
         self.ip_lbl.setStyleSheet(f"color: {theme['accent']}; font-size: 11px; font-weight: bold;")
         self.ip_combo.setStyleSheet(f"""
             QComboBox {{
-                background-color: {theme['bg']};
-                color: {theme['text_primary']};
+                background-color: {theme['input_bg']};
+                color: {theme['input_text']};
                 border: 1px solid {theme['accent']};
                 border-radius: 6px;
                 padding: 2px 6px;
                 font-size: 11px;
                 font-weight: bold;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {theme['card_bg']};
+                color: {theme['text_primary']};
+                selection-background-color: {theme['accent']};
+                selection-color: #ffffff;
             }}
         """)
         self.refresh_btn.setStyleSheet(f"""
