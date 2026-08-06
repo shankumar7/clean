@@ -1,5 +1,5 @@
 """
-Tab 2: System Controls, Relay Motor Override & Preset Limits (With Theme Support).
+Tab 2: System Controls, Relay Motor Override & Preset Limits (High Contrast Theme Fix).
 """
 
 from PyQt6.QtWidgets import (
@@ -139,6 +139,7 @@ class ControlTab(QWidget):
         self.apply_theme(ThemeManager.get_theme())
 
     def apply_theme(self, theme):
+        self.current_theme = theme
         self.title_lbl.setStyleSheet(f"color: {theme['accent']}; font-size: 12px; font-weight: bold; letter-spacing: 0.5px;")
         
         frame_style = f"""
@@ -163,8 +164,8 @@ class ControlTab(QWidget):
         
         self.spinbox.setStyleSheet(f"""
             QSpinBox {{
-                background-color: {theme['bg']};
-                color: {theme['text_primary']};
+                background-color: {theme['input_bg']};
+                color: {theme['input_text']};
                 border: 2px solid {theme['accent']};
                 border-radius: 8px;
                 padding: 2px 6px;
@@ -188,6 +189,9 @@ class ControlTab(QWidget):
                     color: {theme['accent']};
                 }}
             """)
+            
+        state = self.monitor.get_state_dict()
+        self.update_ui(state)
 
     def _toggle_mode(self):
         current_mode = self.monitor.manual_mode
@@ -201,6 +205,7 @@ class ControlTab(QWidget):
         self.monitor.set_pm25_threshold(val)
 
     def update_ui(self, state):
+        theme = getattr(self, "current_theme", ThemeManager.get_theme())
         manual = (state["manual"] == 1)
         motor = (state["motor"] == 1)
         thresh = state.get("pm25_threshold", 200)
@@ -222,16 +227,17 @@ class ControlTab(QWidget):
                     border-radius: 8px;
                 }
             """)
-            self.notice_box.setStyleSheet("""
-                QFrame {
-                    background-color: rgba(239, 68, 68, 0.2);
+            self.notice_box.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {theme['warning_bg']};
                     border-left: 3px solid #ef4444;
                     border-radius: 10px;
-                }
+                }}
             """)
             self.notice_title.setText("MANUAL OVERRIDE ACTIVE")
             self.notice_title.setStyleSheet("color: #ef4444; font-weight: bold; font-size: 11px;")
             self.notice_body.setText("Automated safety triggers OFF. Manually control motor relay.")
+            self.notice_body.setStyleSheet(f"color: {theme['text_primary']}; font-size: 10px;")
             
             self.motor_frame.setEnabled(True)
         else:
@@ -246,16 +252,17 @@ class ControlTab(QWidget):
                     border-radius: 8px;
                 }
             """)
-            self.notice_box.setStyleSheet("""
-                QFrame {
-                    background-color: rgba(2, 132, 199, 0.2);
+            self.notice_box.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {theme['notice_bg']};
                     border-left: 3px solid #0284c7;
                     border-radius: 10px;
-                }
+                }}
             """)
             self.notice_title.setText("AUTOMATED SAFETY ENGINE ACTIVE")
-            self.notice_title.setStyleSheet("color: #38bdf8; font-weight: bold; font-size: 11px;")
+            self.notice_title.setStyleSheet(f"color: {theme['accent']}; font-weight: bold; font-size: 11px;")
             self.notice_body.setText(f"Automated triggers activate motor if PM2.5 > {thresh} µg/m³.")
+            self.notice_body.setStyleSheet(f"color: {theme['text_primary']}; font-size: 10px;")
             
             self.motor_frame.setEnabled(False)
 
@@ -273,13 +280,13 @@ class ControlTab(QWidget):
             """)
         else:
             self.motor_btn.setText("RELAY: OFF")
-            self.motor_btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #334155;
-                    color: #94a3b8;
+            self.motor_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {theme['tab_bg']};
+                    color: {theme['text_muted']};
                     font-size: 11px;
                     font-weight: bold;
-                    border: none;
+                    border: 1px solid {theme['card_border']};
                     border-radius: 8px;
-                }
+                }}
             """)

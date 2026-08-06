@@ -1,5 +1,5 @@
 """
-Tab 1: Live Analysis & Air Quality Dashboard (With AQIGaugeWidget & Micro-animations).
+Tab 1: Live Analysis & Air Quality Dashboard (With High-Contrast Theme Switching).
 """
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout
@@ -42,8 +42,8 @@ class AnalysisTab(QWidget):
         badge_hbox = QHBoxLayout()
         badge_hbox.setContentsMargins(0, 0, 0, 0)
         
-        title_tag = QLabel("AIR QUALITY ASSESSMENT")
-        badge_hbox.addWidget(title_tag)
+        self.title_tag = QLabel("AIR QUALITY ASSESSMENT")
+        badge_hbox.addWidget(self.title_tag)
         badge_hbox.addStretch()
         
         self.aqi_badge = AQIBadge("Good", "#10b981")
@@ -91,15 +91,17 @@ class AnalysisTab(QWidget):
             self.pm10_curve = self.plot_widget.plot(pen=pg.mkPen(color='#ec4899', width=2), name="PM10")
             chart_layout.addWidget(self.plot_widget)
         else:
-            fallback_lbl = QLabel("Live Trend Chart")
-            fallback_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            chart_layout.addWidget(fallback_lbl)
+            self.fallback_lbl = QLabel("Live Trend Chart")
+            self.fallback_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            chart_layout.addWidget(self.fallback_lbl)
 
         main_layout.addWidget(self.chart_frame, stretch=1)
         
         self.apply_theme(ThemeManager.get_theme())
 
     def apply_theme(self, theme):
+        self.gauge.apply_theme(theme)
+        
         self.top_frame.setStyleSheet(f"""
             QFrame {{
                 background-color: {theme['card_bg']};
@@ -107,6 +109,7 @@ class AnalysisTab(QWidget):
                 border-radius: 14px;
             }}
         """)
+        self.title_tag.setStyleSheet(f"color: {theme['accent']}; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;")
         self.precaution_lbl.setStyleSheet(f"color: {theme['text_primary']}; font-size: 11px; margin-top: 4px; line-height: 1.2;")
         
         self.pm1_card.apply_theme(theme)
@@ -125,6 +128,8 @@ class AnalysisTab(QWidget):
         
         if PYQTGRAPH_AVAILABLE:
             self.plot_widget.setBackground(theme['chart_bg'])
+        elif hasattr(self, "fallback_lbl"):
+            self.fallback_lbl.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 11px;")
 
     def update_ui(self, state):
         pm25 = state["pm2_5"]

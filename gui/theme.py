@@ -1,49 +1,57 @@
 """
-Enhanced Theme definitions and color palettes for Light & Dark mode support.
+Comprehensive Theme definitions and high-contrast color palettes for Light & Dark mode.
 """
 
 DARK_THEME = {
     "mode": "dark",
     "bg": "#0b132b",
-    "card_bg": "rgba(28, 37, 65, 0.85)",
-    "card_border": "rgba(255, 255, 255, 0.12)",
+    "card_bg": "#1c2541",
+    "card_border": "#2e3b5e",
     "text_primary": "#ffffff",
-    "text_secondary": "#8d99ae",
-    "accent": "#00b4d8",
-    "accent_glow": "#90e0ef",
-    "header_bg": "rgba(11, 19, 43, 0.95)",
-    "tab_bg": "#1c2541",
-    "tab_text": "#8d99ae",
-    "tab_selected_bg": "#00b4d8",
-    "tab_selected_text": "#0b132b",
+    "text_secondary": "#94a3b8",
+    "text_muted": "#64748b",
+    "accent": "#38bdf8",
+    "header_bg": "#141c33",
+    "tab_bg": "#1e293b",
+    "tab_text": "#94a3b8",
+    "tab_selected_bg": "#0284c7",
+    "tab_selected_text": "#ffffff",
     "log_bg": "#060a17",
     "log_text": "#38bdf8",
     "chart_bg": "#0b132b",
-    "chart_fg": "#8d99ae",
-    "btn_bg": "#3a506b",
-    "btn_text": "#ffffff"
+    "chart_fg": "#94a3b8",
+    "input_bg": "#0f172a",
+    "input_text": "#ffffff",
+    "notice_bg": "rgba(2, 132, 199, 0.25)",
+    "notice_text": "#f8fafc",
+    "warning_bg": "rgba(239, 68, 68, 0.25)",
+    "warning_text": "#fee2e2"
 }
 
 LIGHT_THEME = {
     "mode": "light",
-    "bg": "#f8fafc",
+    "bg": "#f1f5f9",
     "card_bg": "#ffffff",
-    "card_border": "#e2e8f0",
+    "card_border": "#cbd5e1",
     "text_primary": "#0f172a",
-    "text_secondary": "#64748b",
+    "text_secondary": "#334155",
+    "text_muted": "#64748b",
     "accent": "#0284c7",
-    "accent_glow": "#0077b6",
     "header_bg": "#ffffff",
     "tab_bg": "#e2e8f0",
-    "tab_text": "#64748b",
+    "tab_text": "#475569",
     "tab_selected_bg": "#0284c7",
     "tab_selected_text": "#ffffff",
     "log_bg": "#ffffff",
     "log_text": "#0284c7",
     "chart_bg": "#ffffff",
-    "chart_fg": "#64748b",
-    "btn_bg": "#cbd5e1",
-    "btn_text": "#0f172a"
+    "chart_fg": "#334155",
+    "input_bg": "#f8fafc",
+    "input_text": "#0f172a",
+    "notice_bg": "#e0f2fe",
+    "notice_text": "#0369a1",
+    "warning_bg": "#fee2e2",
+    "warning_text": "#991b1b"
 }
 
 

@@ -1,20 +1,28 @@
 """
-Custom QPainter AQI Arc & Progress Gauge Widget for 5" displays.
+Custom QPainter AQI Arc & Progress Gauge Widget with Theme Support.
 """
 
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QPainter, QColor, QPen, QFont, QConicalGradient
+from PyQt6.QtGui import QPainter, QColor, QPen, QFont
 from PyQt6.QtCore import Qt, QRectF
+from gui.theme import ThemeManager
 
 
 class AQIGaugeWidget(QWidget):
-    """Arc gauge representing PM2.5 air quality level with smooth gradient arcs."""
+    """Arc gauge representing PM2.5 air quality level with theme-aware text contrast."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.value = 0
         self.max_value = 300
-        self.gauge_color = QColor("#10b981") # Good green default
+        self.gauge_color = QColor("#10b981")
+        self.text_color = QColor("#ffffff")
         self.setMinimumSize(90, 90)
+        
+        self.apply_theme(ThemeManager.get_theme())
+
+    def apply_theme(self, theme):
+        self.text_color = QColor(theme["text_primary"])
+        self.update()
 
     def set_value(self, val, color_hex="#10b981"):
         self.value = max(0, min(self.max_value, val))
@@ -34,7 +42,7 @@ class AQIGaugeWidget(QWidget):
         rect = QRectF(x, y, side, side)
 
         # Background track arc
-        pen_bg = QPen(QColor(255, 255, 255, 30), 8)
+        pen_bg = QPen(QColor(128, 128, 128, 60), 8)
         pen_bg.setCapStyle(Qt.PenCapStyle.RoundCap)
         painter.setPen(pen_bg)
 
@@ -53,8 +61,8 @@ class AQIGaugeWidget(QWidget):
             painter.setPen(pen_active)
             painter.drawArc(rect, start_angle, active_span)
 
-        # Center text (PM2.5 value)
-        painter.setPen(QColor("#ffffff"))
+        # Center text with theme-aware text color
+        painter.setPen(self.text_color)
         font = QFont("Outfit", 14, QFont.Weight.Bold)
         painter.setFont(font)
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self.value}\nµg/m³")
