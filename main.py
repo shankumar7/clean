@@ -7,7 +7,7 @@ import sys
 import signal
 import argparse
 from core.monitor import AirQualityMonitor
-from core.pms5003 import PMS5003Reader
+from core.esp32_fetcher import ESP32Fetcher
 from core.relay import MotorRelayController
 from server.web_server import WebServerThread
 import config
@@ -57,8 +57,8 @@ def main():
     relay_controller = MotorRelayController(pin=config.RELAY_GPIO_PIN, active_low=config.ACTIVE_LOW_RELAY)
     monitor_engine.set_relay_callback(relay_controller.set_motor)
     
-    # 3. Start PMS5003 Hardware / Simulation Sensor Thread
-    sensor_thread = PMS5003Reader(monitor_engine, port=args.serial)
+    # 3. Start ESP32 Wi-Fi Data Fetcher Thread
+    sensor_thread = ESP32Fetcher(monitor_engine)
     sensor_thread.start()
     
     # 4. Start Embedded Host Web Server (Flask)
