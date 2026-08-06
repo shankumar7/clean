@@ -15,6 +15,7 @@ sudo apt-get install -y \
     python3-pyqt6 \
     python3-pyserial \
     python3-pil \
+    python3-qrcode \
     python3-flask \
     python3-gpiozero \
     libatlas-base-dev
