@@ -1,10 +1,11 @@
 """
-Tab 1: Live Analysis & Air Quality Dashboard (Optimized for 5" Displays & Theme Support).
+Tab 1: Live Analysis & Air Quality Dashboard (With AQIGaugeWidget & Micro-animations).
 """
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout
 from PyQt6.QtCore import Qt
 from gui.components.cards import MetricCard, AQIBadge
+from gui.components.gauge import AQIGaugeWidget
 from gui.theme import ThemeManager
 
 try:
@@ -23,25 +24,15 @@ class AnalysisTab(QWidget):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(8)
         
-        # Top Row: Hero PM2.5 Card + AQI Badge & Precautions
+        # Top Row: Custom Arc Gauge + AQI Badge & Health Precautions
         self.top_frame = QFrame()
         top_layout = QHBoxLayout(self.top_frame)
-        top_layout.setContentsMargins(12, 10, 12, 10)
+        top_layout.setContentsMargins(12, 8, 12, 8)
         top_layout.setSpacing(10)
         
-        # Hero Value PM2.5
-        pm25_vbox = QVBoxLayout()
-        pm25_vbox.setSpacing(2)
-        self.pm25_label = QLabel("PM 2.5 MAIN")
-        
-        self.pm25_num = QLabel("--")
-        self.pm25_unit = QLabel("µg/m³ (Fine Dust)")
-        
-        pm25_vbox.addWidget(self.pm25_label)
-        pm25_vbox.addWidget(self.pm25_num)
-        pm25_vbox.addWidget(self.pm25_unit)
-        
-        top_layout.addLayout(pm25_vbox, stretch=4)
+        # Arc Gauge Widget
+        self.gauge = AQIGaugeWidget()
+        top_layout.addWidget(self.gauge, stretch=0)
         
         # AQI Precaution & Status Card
         info_vbox = QVBoxLayout()
@@ -50,9 +41,13 @@ class AnalysisTab(QWidget):
         
         badge_hbox = QHBoxLayout()
         badge_hbox.setContentsMargins(0, 0, 0, 0)
-        self.aqi_badge = AQIBadge("Good", "#4CAF50")
-        badge_hbox.addWidget(self.aqi_badge)
+        
+        title_tag = QLabel("AIR QUALITY ASSESSMENT")
+        badge_hbox.addWidget(title_tag)
         badge_hbox.addStretch()
+        
+        self.aqi_badge = AQIBadge("Good", "#10b981")
+        badge_hbox.addWidget(self.aqi_badge)
         
         self.precaution_lbl = QLabel("Air quality is great! Safe to enjoy outdoor physical exercise.")
         self.precaution_lbl.setWordWrap(True)
@@ -60,7 +55,7 @@ class AnalysisTab(QWidget):
         info_vbox.addLayout(badge_hbox)
         info_vbox.addWidget(self.precaution_lbl)
         
-        top_layout.addLayout(info_vbox, stretch=6)
+        top_layout.addLayout(info_vbox, stretch=1)
         main_layout.addWidget(self.top_frame)
         
         # Middle Row: Metric Cards Grid
@@ -79,20 +74,20 @@ class AnalysisTab(QWidget):
         
         main_layout.addLayout(grid_layout)
         
-        # Bottom Row: Trend Chart
+        # Bottom Row: Live Trend Chart
         self.chart_frame = QFrame()
         chart_layout = QVBoxLayout(self.chart_frame)
         chart_layout.setContentsMargins(8, 6, 8, 6)
         chart_layout.setSpacing(4)
         
-        self.chart_title = QLabel("LIVE PARTICULATE CONCENTRATION TREND")
+        self.chart_title = QLabel("📈 REAL-TIME PARTICULATE DENSITY TREND")
         chart_layout.addWidget(self.chart_title)
         
         if PYQTGRAPH_AVAILABLE:
             self.plot_widget = pg.PlotWidget()
             self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
             self.plot_widget.setYRange(0, 300)
-            self.pm25_curve = self.plot_widget.plot(pen=pg.mkPen(color='#38bdf8', width=2), name="PM2.5")
+            self.pm25_curve = self.plot_widget.plot(pen=pg.mkPen(color='#00b4d8', width=2), name="PM2.5")
             self.pm10_curve = self.plot_widget.plot(pen=pg.mkPen(color='#ec4899', width=2), name="PM10")
             chart_layout.addWidget(self.plot_widget)
         else:
@@ -102,7 +97,6 @@ class AnalysisTab(QWidget):
 
         main_layout.addWidget(self.chart_frame, stretch=1)
         
-        # Apply current theme
         self.apply_theme(ThemeManager.get_theme())
 
     def apply_theme(self, theme):
@@ -113,9 +107,6 @@ class AnalysisTab(QWidget):
                 border-radius: 14px;
             }}
         """)
-        self.pm25_label.setStyleSheet(f"color: {theme['accent']}; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;")
-        self.pm25_num.setStyleSheet(f"color: {theme['text_primary']}; font-size: 38px; font-weight: bold;")
-        self.pm25_unit.setStyleSheet(f"color: {theme['text_secondary']}; font-size: 10px;")
         self.precaution_lbl.setStyleSheet(f"color: {theme['text_primary']}; font-size: 11px; margin-top: 4px; line-height: 1.2;")
         
         self.pm1_card.apply_theme(theme)
@@ -136,14 +127,16 @@ class AnalysisTab(QWidget):
             self.plot_widget.setBackground(theme['chart_bg'])
 
     def update_ui(self, state):
-        self.pm25_num.setText(str(state["pm2_5"]))
+        pm25 = state["pm2_5"]
+        self.gauge.set_value(pm25, state.get("aqi_color", "#10b981"))
+        
         self.pm1_card.set_value(state["pm1_0"])
         self.pm10_card.set_value(state["pm10"])
         
         mode_str = "MANUAL" if state["manual"] == 1 else "AUTO"
         self.mode_card.set_value(mode_str)
         
-        motor_str = "ON" if state["motor"] == 1 else "OFF"
+        motor_str = "ON ⚡" if state["motor"] == 1 else "OFF"
         self.motor_card.set_value(motor_str)
         
         self.aqi_badge.set_badge(state["aqi_label"], state["aqi_color"])

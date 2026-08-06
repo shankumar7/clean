@@ -1,5 +1,5 @@
 """
-Tab 2: System Controls, Relay Motor Override & Safety Threshold Settings (With Theme Support).
+Tab 2: System Controls, Relay Motor Override & Preset Limits (With Theme Support).
 """
 
 from PyQt6.QtWidgets import (
@@ -27,7 +27,7 @@ class ControlTab(QWidget):
         content_layout.setSpacing(10)
         
         # Title
-        self.title_lbl = QLabel("SYSTEM CONTROL & SAFETY THRESHOLDS")
+        self.title_lbl = QLabel("⚙️ SYSTEM CONTROL & SAFETY THRESHOLDS")
         content_layout.addWidget(self.title_lbl)
         
         # Notice Box
@@ -88,18 +88,19 @@ class ControlTab(QWidget):
         
         content_layout.addWidget(self.motor_frame)
         
-        # Section 3: Threshold Limit Adjuster
+        # Section 3: Threshold Limit Adjuster & Quick Presets
         self.thresh_frame = QFrame()
-        thresh_layout = QHBoxLayout(self.thresh_frame)
-        thresh_layout.setContentsMargins(12, 10, 12, 10)
+        thresh_vbox = QVBoxLayout(self.thresh_frame)
+        thresh_vbox.setContentsMargins(12, 10, 12, 10)
         
+        thresh_top = QHBoxLayout()
         thresh_info = QVBoxLayout()
         self.thresh_lbl = QLabel("PM2.5 Safety Trigger Limit")
-        self.thresh_sub = QLabel("Concentration level that triggers motor relay.")
+        self.thresh_sub = QLabel("Select concentration level that triggers motor relay.")
         thresh_info.addWidget(self.thresh_lbl)
         thresh_info.addWidget(self.thresh_sub)
         
-        thresh_layout.addLayout(thresh_info, stretch=1)
+        thresh_top.addLayout(thresh_info, stretch=1)
         
         self.spinbox = QSpinBox()
         self.spinbox.setRange(20, 500)
@@ -107,9 +108,27 @@ class ControlTab(QWidget):
         self.spinbox.setValue(200)
         self.spinbox.setSuffix(" µg/m³")
         self.spinbox.setMinimumHeight(34)
-        self.spinbox.setMinimumWidth(120)
+        self.spinbox.setMinimumWidth(110)
         self.spinbox.valueChanged.connect(self._threshold_changed)
-        thresh_layout.addWidget(self.spinbox)
+        thresh_top.addWidget(self.spinbox)
+        
+        thresh_vbox.addLayout(thresh_top)
+        
+        # Quick Presets Buttons (50, 100, 200, 300)
+        preset_hbox = QHBoxLayout()
+        preset_hbox.setSpacing(6)
+        
+        presets = [50, 100, 200, 300]
+        self.preset_btns = []
+        for val in presets:
+            btn = QPushButton(f"{val} µg/m³")
+            btn.setMinimumHeight(28)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.clicked.connect(lambda _, v=val: self.monitor.set_pm25_threshold(v))
+            preset_hbox.addWidget(btn)
+            self.preset_btns.append(btn)
+            
+        thresh_vbox.addLayout(preset_hbox)
         
         content_layout.addWidget(self.thresh_frame)
         content_layout.addStretch()
@@ -153,6 +172,22 @@ class ControlTab(QWidget):
                 font-weight: bold;
             }}
         """)
+        
+        for btn in self.preset_btns:
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {theme['tab_bg']};
+                    color: {theme['text_primary']};
+                    border: 1px solid {theme['card_border']};
+                    border-radius: 6px;
+                    font-size: 10px;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    border-color: {theme['accent']};
+                    color: {theme['accent']};
+                }}
+            """)
 
     def _toggle_mode(self):
         current_mode = self.monitor.manual_mode
@@ -225,10 +260,10 @@ class ControlTab(QWidget):
             self.motor_frame.setEnabled(False)
 
         if motor:
-            self.motor_btn.setText("RELAY: ON")
+            self.motor_btn.setText("RELAY: ON ⚡")
             self.motor_btn.setStyleSheet("""
                 QPushButton {
-                    background-color: #22c55e;
+                    background-color: #10b981;
                     color: #ffffff;
                     font-size: 11px;
                     font-weight: bold;

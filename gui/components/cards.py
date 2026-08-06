@@ -1,14 +1,25 @@
 """
-PyQt component widgets for touchscreen metric cards & status badges with Theme support.
+PyQt component widgets for touchscreen metric cards & status badges with icons & theme support.
 """
 
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt6.QtCore import Qt
 from gui.theme import ThemeManager
 
+ICONS = {
+    "PM 1.0": "🌬️",
+    "PM 10": "💨",
+    "System Mode": "⚙️",
+    "Motor Relay": "⚡",
+    "PMS5003 UART": "🔌",
+    "GPIO Relay Pin": "📌",
+    "Web Server Port": "🌐",
+    "System Engine": "🚀"
+}
+
 
 class MetricCard(QFrame):
-    """Compact card displaying a metric title, numeric value, and unit with theme support."""
+    """Compact glassmorphism card displaying metric icon, title, numeric value, and unit."""
     def __init__(self, title, unit="µg/m³", parent=None):
         super().__init__(parent)
         self.title_text = title
@@ -18,7 +29,8 @@ class MetricCard(QFrame):
         layout.setContentsMargins(10, 8, 10, 8)
         layout.setSpacing(2)
         
-        self.title_lbl = QLabel(self.title_text.upper())
+        icon_symbol = ICONS.get(self.title_text, "📊")
+        self.title_lbl = QLabel(f"{icon_symbol} {self.title_text.upper()}")
         self.value_lbl = QLabel("--")
         self.unit_lbl = QLabel(self.unit_text)
         
@@ -52,13 +64,13 @@ class MetricCard(QFrame):
 
 
 class AQIBadge(QLabel):
-    """Dynamic color-coded status badge for 5" screens."""
-    def __init__(self, text="Good", color="#4CAF50", parent=None):
+    """Dynamic color-coded status badge with glow for 5" screens."""
+    def __init__(self, text="Good", color="#10b981", parent=None):
         super().__init__(text, parent)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.set_badge(text, color)
 
-    def set_badge(self, text, color="#4CAF50"):
+    def set_badge(self, text, color="#10b981"):
         self.setText(text.upper())
         self.setStyleSheet(f"""
             QLabel {{
@@ -66,8 +78,8 @@ class AQIBadge(QLabel):
                 color: #ffffff;
                 font-size: 11px;
                 font-weight: bold;
-                padding: 4px 12px;
-                border-radius: 10px;
+                padding: 4px 14px;
+                border-radius: 12px;
                 letter-spacing: 0.5px;
             }}
         """)
