@@ -1,10 +1,10 @@
 """
-Tab 3: Mobile Remote Web Portal Access & Dynamic QR Code Display.
+Tab 3: Mobile Remote Web Portal Access & Dynamic QR Code Display (Optimized for 5" Displays).
 """
 
 import socket
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton, QComboBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton, QComboBox, QScrollArea
 )
 from PyQt6.QtCore import Qt
 from gui.components.qr_widget import QRCodeWidget
@@ -15,7 +15,6 @@ def get_network_ip_addresses():
     """Retrieve list of active IP addresses for network interfaces."""
     ip_list = []
     try:
-        # Try connecting via UDP socket to discover default routing IP
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(0.5)
         s.connect(("8.8.8.8", 80))
@@ -27,7 +26,6 @@ def get_network_ip_addresses():
         pass
 
     try:
-        # Fallback to hostname resolution
         hostname = socket.gethostname()
         host_ips = socket.gethostbyname_ex(hostname)[2]
         for ip in host_ips:
@@ -49,105 +47,105 @@ class QRCodeTab(QWidget):
         self.ip_addresses = get_network_ip_addresses()
         
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(6, 6, 6, 6)
+        
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        
+        scroll_content = QWidget()
+        content_layout = QVBoxLayout(scroll_content)
+        content_layout.setContentsMargins(6, 6, 6, 6)
+        content_layout.setSpacing(8)
         
         # Header
-        header_vbox = QVBoxLayout()
         title_lbl = QLabel("MOBILE REMOTE MANAGEMENT PORTAL")
-        title_lbl.setStyleSheet("color: #38bdf8; font-size: 14px; font-weight: bold; letter-spacing: 1px;")
-        sub_lbl = QLabel("Scan the QR code below with any smartphone or tablet on the same Wi-Fi / Hotspot to open the Web Dashboard.")
-        sub_lbl.setStyleSheet("color: #94a3b8; font-size: 12px;")
+        title_lbl.setStyleSheet("color: #38bdf8; font-size: 12px; font-weight: bold; letter-spacing: 0.5px;")
+        sub_lbl = QLabel("Scan QR code with smartphone to manage project over local Wi-Fi.")
+        sub_lbl.setStyleSheet("color: #94a3b8; font-size: 10px;")
         sub_lbl.setWordWrap(True)
         
-        header_vbox.addWidget(title_lbl)
-        header_vbox.addWidget(sub_lbl)
-        main_layout.addLayout(header_vbox)
+        content_layout.addWidget(title_lbl)
+        content_layout.addWidget(sub_lbl)
         
-        # Central Section: QR Code & IP Details
-        content_frame = QFrame()
-        content_frame.setStyleSheet("""
+        # Central Section
+        card_frame = QFrame()
+        card_frame.setStyleSheet("""
             QFrame {
-                background-color: rgba(30, 41, 59, 0.7);
+                background-color: rgba(30, 41, 59, 0.85);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 20px;
+                border-radius: 12px;
             }
         """)
-        content_layout = QHBoxLayout(content_frame)
-        content_layout.setContentsMargins(24, 20, 24, 20)
+        card_layout = QHBoxLayout(card_frame)
+        card_layout.setContentsMargins(12, 10, 12, 10)
+        card_layout.setSpacing(10)
         
-        # Left side: Dynamic QR Code Widget
+        # Left side: QR Code Widget (size 160)
         initial_url = f"http://{self.ip_addresses[0]}:{config.SERVER_PORT}"
         self.qr_widget = QRCodeWidget(url=initial_url)
-        content_layout.addWidget(self.qr_widget, stretch=1)
+        card_layout.addWidget(self.qr_widget, stretch=0)
         
-        # Right side: Network connection instructions & URL dropdown
+        # Right side: Instructions & IP selector
         info_vbox = QVBoxLayout()
         info_vbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info_vbox.setSpacing(12)
+        info_vbox.setSpacing(6)
         
-        step1_lbl = QLabel("📱 <b>Step 1:</b> Connect smartphone to same Wi-Fi / Hotspot.")
-        step1_lbl.setStyleSheet("color: #f8fafc; font-size: 13px;")
+        step1_lbl = QLabel("📱 1. Connect phone to same Wi-Fi.")
+        step1_lbl.setStyleSheet("color: #f8fafc; font-size: 11px;")
         
-        step2_lbl = QLabel("📷 <b>Step 2:</b> Open phone camera and scan the QR code.")
-        step2_lbl.setStyleSheet("color: #f8fafc; font-size: 13px;")
+        step2_lbl = QLabel("📷 2. Scan QR code with camera.")
+        step2_lbl.setStyleSheet("color: #f8fafc; font-size: 11px;")
         
-        step3_lbl = QLabel("🌐 <b>Step 3:</b> Manage air quality & manual controls remotely.")
-        step3_lbl.setStyleSheet("color: #f8fafc; font-size: 13px;")
+        step3_lbl = QLabel("🌐 3. Manage project on mobile.")
+        step3_lbl.setStyleSheet("color: #f8fafc; font-size: 11px;")
         
         info_vbox.addWidget(step1_lbl)
         info_vbox.addWidget(step2_lbl)
         info_vbox.addWidget(step3_lbl)
         
-        # Interface Selector Box
-        ip_box = QVBoxLayout()
-        ip_box.setSpacing(4)
-        ip_lbl = QLabel("Active Host Web Server URL:")
-        ip_lbl.setStyleSheet("color: #38bdf8; font-size: 12px; font-weight: bold;")
+        ip_lbl = QLabel("Web Server URL:")
+        ip_lbl.setStyleSheet("color: #38bdf8; font-size: 11px; font-weight: bold;")
         
         self.ip_combo = QComboBox()
-        self.ip_combo.setMinimumHeight(36)
+        self.ip_combo.setMinimumHeight(30)
         self.ip_combo.setStyleSheet("""
             QComboBox {
                 background-color: #0f172a;
                 color: #ffffff;
-                border: 2px solid #38bdf8;
-                border-radius: 8px;
-                padding: 4px 10px;
-                font-size: 14px;
+                border: 1px solid #38bdf8;
+                border-radius: 6px;
+                padding: 2px 6px;
+                font-size: 11px;
                 font-weight: bold;
             }
         """)
         self.ip_combo.currentIndexChanged.connect(self._on_ip_selected)
         self._populate_ips()
         
-        ip_box.addWidget(ip_lbl)
-        ip_box.addWidget(self.ip_combo)
+        info_vbox.addWidget(ip_lbl)
+        info_vbox.addWidget(self.ip_combo)
         
-        # Refresh Network IP button
-        self.refresh_btn = QPushButton("🔄 Refresh Network Interfaces")
-        self.refresh_btn.setMinimumHeight(36)
+        self.refresh_btn = QPushButton("🔄 Refresh IP")
+        self.refresh_btn.setMinimumHeight(28)
         self.refresh_btn.setStyleSheet("""
             QPushButton {
                 background-color: #1e293b;
                 color: #38bdf8;
                 border: 1px solid #38bdf8;
-                border-radius: 8px;
+                border-radius: 6px;
                 font-weight: bold;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: #38bdf8;
-                color: #0f172a;
+                font-size: 10px;
             }
         """)
         self.refresh_btn.clicked.connect(self._refresh_network_ips)
-        ip_box.addWidget(self.refresh_btn)
+        info_vbox.addWidget(self.refresh_btn)
         
-        info_vbox.addLayout(ip_box)
-        content_layout.addLayout(info_vbox, stretch=1)
+        card_layout.addLayout(info_vbox, stretch=1)
+        content_layout.addWidget(card_frame)
         
-        main_layout.addWidget(content_frame, stretch=1)
+        scroll.setWidget(scroll_content)
+        main_layout.addWidget(scroll)
 
     def _populate_ips(self):
         self.ip_combo.blockSignals(True)

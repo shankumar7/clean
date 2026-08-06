@@ -1,5 +1,5 @@
 """
-PyQt component for rendering dynamic QR codes.
+PyQt component for rendering dynamic QR codes (Optimized for 5" displays).
 """
 
 import io
@@ -21,16 +21,16 @@ class QRCodeWidget(QWidget):
         
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(4, 4, 4, 4)
         
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setStyleSheet("""
             QLabel {
                 background-color: #ffffff;
-                border: 4px solid #38bdf8;
-                border-radius: 16px;
-                padding: 12px;
+                border: 3px solid #38bdf8;
+                border-radius: 12px;
+                padding: 6px;
             }
         """)
         
@@ -42,13 +42,13 @@ class QRCodeWidget(QWidget):
         pixmap = self._generate_qr_pixmap(self.url)
         self.image_label.setPixmap(pixmap)
 
-    def _generate_qr_pixmap(self, text, size=240):
+    def _generate_qr_pixmap(self, text, size=160):
         if QRCODE_AVAILABLE:
             try:
                 qr = qrcode.QRCode(
                     version=1,
                     error_correction=qrcode.constants.ERROR_CORRECT_M,
-                    box_size=8,
+                    box_size=6,
                     border=2,
                 )
                 qr.add_data(text)
@@ -65,7 +65,6 @@ class QRCodeWidget(QWidget):
             except Exception as e:
                 print(f"[QRCodeWidget] Failed to generate QR code: {e}")
         
-        # Fallback text placeholder if qrcode module fails
         fallback_pixmap = QPixmap(size, size)
         fallback_pixmap.fill(QColor("#ffffff"))
         return fallback_pixmap

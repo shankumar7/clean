@@ -1,5 +1,5 @@
 """
-Main PyQt6 Touchscreen Window & Tab Navigation Application.
+Main PyQt6 Touchscreen Window & Tab Navigation Application (Optimized for 5" Displays).
 """
 
 import sys
@@ -20,38 +20,37 @@ class AirMonitorMainWindow(QMainWindow):
         self.monitor = monitor_engine
         
         self.setWindowTitle("Raspberry Pi Air Quality Monitor & Host Server")
-        self.resize(800, 480)  # Standard 7" Raspberry Pi Touchscreen Resolution
-        self.setMinimumSize(720, 440)
+        self.resize(800, 480)  # Standard 5" Touchscreen Resolution (800x480)
+        self.setMinimumSize(480, 320)  # Compact 5" SPI fallback (480x320)
         
-        # Main central container widget
         central_widget = QWidget()
         central_widget.setStyleSheet("background-color: #0f172a; font-family: 'Outfit', sans-serif;")
         self.setCentralWidget(central_widget)
         
         layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(10)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(6)
         
-        # Header Status Bar
+        # Header Status Bar (Compact for 5" Screen)
         header = QFrame()
         header.setStyleSheet("""
             QFrame {
                 background-color: rgba(30, 41, 59, 0.9);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 14px;
+                border-radius: 10px;
             }
         """)
         header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(16, 8, 16, 8)
+        header_layout.setContentsMargins(10, 4, 10, 4)
         
-        title_lbl = QLabel("AIR QUALITY MONITORING & HOST SERVER")
-        title_lbl.setStyleSheet("color: #38bdf8; font-size: 14px; font-weight: bold; letter-spacing: 1px;")
+        title_lbl = QLabel("AIR MONITOR & HOST SERVER")
+        title_lbl.setStyleSheet("color: #38bdf8; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;")
         
         self.clock_lbl = QLabel()
-        self.clock_lbl.setStyleSheet("color: #94a3b8; font-size: 13px; font-weight: bold;")
+        self.clock_lbl.setStyleSheet("color: #94a3b8; font-size: 11px; font-weight: bold;")
         
-        status_indicator = QLabel("● SERVER ONLINE")
-        status_indicator.setStyleSheet("color: #22c55e; font-size: 12px; font-weight: bold; margin-right: 12px;")
+        status_indicator = QLabel("● ONLINE")
+        status_indicator.setStyleSheet("color: #22c55e; font-size: 10px; font-weight: bold; margin-right: 8px;")
         
         header_layout.addWidget(title_lbl)
         header_layout.addStretch()
@@ -60,25 +59,25 @@ class AirMonitorMainWindow(QMainWindow):
         
         layout.addWidget(header)
         
-        # Multi-Tab Navigation Widget
+        # Multi-Tab Navigation Widget (Compact Touch Styling)
         self.tabs = QTabWidget()
         self.tabs.setTabBar(TouchTabBar())
         self.tabs.setStyleSheet("""
             QTabWidget::pane {
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
+                border-radius: 12px;
                 background: rgba(15, 23, 42, 0.6);
             }
             QTabBar::tab {
                 background: #1e293b;
                 color: #94a3b8;
-                font-size: 14px;
+                font-size: 11px;
                 font-weight: bold;
-                padding: 12px 24px;
-                margin-right: 6px;
-                border-top-left-radius: 12px;
-                border-top-right-radius: 12px;
-                min-width: 140px;
+                padding: 8px 12px;
+                margin-right: 4px;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                min-width: 90px;
             }
             QTabBar::tab:selected {
                 background: #38bdf8;
@@ -96,10 +95,10 @@ class AirMonitorMainWindow(QMainWindow):
         self.tab3_qrcode = QRCodeTab(self.monitor)
         self.tab4_diagnostics = DiagnosticsTab(self.monitor)
         
-        self.tabs.addTab(self.tab1_analysis, "📊 Live Analysis")
-        self.tabs.addTab(self.tab2_control, "⚙️ System Controls")
-        self.tabs.addTab(self.tab3_qrcode, "📲 QR Code Portal")
-        self.tabs.addTab(self.tab4_diagnostics, "🔧 Diagnostics")
+        self.tabs.addTab(self.tab1_analysis, "📊 Analysis")
+        self.tabs.addTab(self.tab2_control, "⚙️ Controls")
+        self.tabs.addTab(self.tab3_qrcode, "📲 QR Portal")
+        self.tabs.addTab(self.tab4_diagnostics, "🔧 Diagnostic")
         
         layout.addWidget(self.tabs)
         
@@ -108,7 +107,6 @@ class AirMonitorMainWindow(QMainWindow):
         self.timer.timeout.connect(self._on_timer_tick)
         self.timer.start(1000)
         
-        # Register monitor callback
         self.monitor.register_listener(self._on_state_changed)
         self._update_clock()
 
@@ -118,7 +116,7 @@ class AirMonitorMainWindow(QMainWindow):
         self._on_state_changed(state)
 
     def _update_clock(self):
-        self.clock_lbl.setText(time.strftime("%Y-%m-%d  %H:%M:%S"))
+        self.clock_lbl.setText(time.strftime("%H:%M:%S"))
 
     def _on_state_changed(self, state):
         self.tab1_analysis.update_ui(state)
@@ -128,7 +126,7 @@ class AirMonitorMainWindow(QMainWindow):
 
 
 class TouchTabBar(QTabBar):
-    """Custom TabBar with touch-friendly sizing."""
+    """Custom TabBar with touch-friendly sizing for 5-inch screens."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)

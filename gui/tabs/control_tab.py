@@ -1,9 +1,9 @@
 """
-Tab 2: System Controls, Relay Motor Override & Safety Threshold Settings.
+Tab 2: System Controls, Relay Motor Override & Safety Threshold Settings (Optimized for 5" Displays).
 """
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton, QSpinBox, QSlider
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton, QSpinBox, QScrollArea
 )
 from PyQt6.QtCore import Qt
 
@@ -14,116 +14,126 @@ class ControlTab(QWidget):
         self.monitor = monitor_engine
         
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(6, 6, 6, 6)
+        
+        # Scroll Area wrapper for 5-inch touchscreens
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        
+        scroll_content = QWidget()
+        content_layout = QVBoxLayout(scroll_content)
+        content_layout.setContentsMargins(6, 6, 6, 6)
+        content_layout.setSpacing(10)
         
         # Title
         title_lbl = QLabel("SYSTEM CONTROL & SAFETY THRESHOLDS")
-        title_lbl.setStyleSheet("color: #38bdf8; font-size: 14px; font-weight: bold; letter-spacing: 1px;")
-        main_layout.addWidget(title_lbl)
+        title_lbl.setStyleSheet("color: #38bdf8; font-size: 12px; font-weight: bold; letter-spacing: 0.5px;")
+        content_layout.addWidget(title_lbl)
         
         # Notice Box
         self.notice_box = QFrame()
         self.notice_box.setStyleSheet("""
             QFrame {
                 background-color: rgba(2, 132, 199, 0.2);
-                border-left: 4px solid #0284c7;
-                border-radius: 12px;
+                border-left: 3px solid #0284c7;
+                border-radius: 10px;
             }
         """)
         notice_layout = QVBoxLayout(self.notice_box)
-        notice_layout.setContentsMargins(16, 12, 16, 12)
+        notice_layout.setContentsMargins(12, 8, 12, 8)
+        notice_layout.setSpacing(2)
         
         self.notice_title = QLabel("AUTOMATED SAFETY ENGINE ACTIVE")
-        self.notice_title.setStyleSheet("color: #38bdf8; font-weight: bold; font-size: 13px;")
+        self.notice_title.setStyleSheet("color: #38bdf8; font-weight: bold; font-size: 11px;")
         
         self.notice_body = QLabel("The system automatically runs the motor relay when PM2.5 goes over threshold limit.")
-        self.notice_body.setStyleSheet("color: #e2e8f0; font-size: 12px;")
+        self.notice_body.setStyleSheet("color: #e2e8f0; font-size: 10px;")
         self.notice_body.setWordWrap(True)
         
         notice_layout.addWidget(self.notice_title)
         notice_layout.addWidget(self.notice_body)
-        main_layout.addWidget(self.notice_box)
+        content_layout.addWidget(self.notice_box)
         
-        # Section 1: System Mode Selector (AUTO / MANUAL)
+        # Section 1: System Mode Selector
         mode_frame = QFrame()
         mode_frame.setStyleSheet("""
             QFrame {
-                background-color: rgba(30, 41, 59, 0.7);
+                background-color: rgba(30, 41, 59, 0.85);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
+                border-radius: 12px;
             }
         """)
         mode_layout = QHBoxLayout(mode_frame)
-        mode_layout.setContentsMargins(20, 16, 20, 16)
+        mode_layout.setContentsMargins(12, 10, 12, 10)
         
         mode_info = QVBoxLayout()
         mode_lbl = QLabel("System Mode Override")
-        mode_lbl.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
-        mode_sub = QLabel("Switch between automated safety control and manual user override.")
-        mode_sub.setStyleSheet("color: #94a3b8; font-size: 12px;")
+        mode_lbl.setStyleSheet("color: #ffffff; font-size: 13px; font-weight: bold;")
+        mode_sub = QLabel("Switch between auto safety control & manual user override.")
+        mode_sub.setStyleSheet("color: #94a3b8; font-size: 10px;")
         mode_info.addWidget(mode_lbl)
         mode_info.addWidget(mode_sub)
         
         mode_layout.addLayout(mode_info, stretch=1)
         
-        self.mode_btn = QPushButton("AUTOMATIC MODE")
-        self.mode_btn.setMinimumHeight(44)
-        self.mode_btn.setMinimumWidth(160)
+        self.mode_btn = QPushButton("AUTO MODE")
+        self.mode_btn.setMinimumHeight(36)
+        self.mode_btn.setMinimumWidth(130)
         self.mode_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.mode_btn.clicked.connect(self._toggle_mode)
         mode_layout.addWidget(self.mode_btn)
         
-        main_layout.addWidget(mode_frame)
+        content_layout.addWidget(mode_frame)
         
-        # Section 2: Relay Motor Control (Manual Only)
+        # Section 2: Relay Motor Control
         self.motor_frame = QFrame()
         self.motor_frame.setStyleSheet("""
             QFrame {
-                background-color: rgba(30, 41, 59, 0.7);
+                background-color: rgba(30, 41, 59, 0.85);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
+                border-radius: 12px;
             }
         """)
         motor_layout = QHBoxLayout(self.motor_frame)
-        motor_layout.setContentsMargins(20, 16, 20, 16)
+        motor_layout.setContentsMargins(12, 10, 12, 10)
         
         motor_info = QVBoxLayout()
-        motor_lbl = QLabel("Manual Motor Relay Control")
-        motor_lbl.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
-        self.motor_sub = QLabel("Directly trigger GPIO 23 active-LOW relay pin (Active in MANUAL mode only).")
-        self.motor_sub.setStyleSheet("color: #94a3b8; font-size: 12px;")
+        motor_lbl = QLabel("Manual Motor Relay")
+        motor_lbl.setStyleSheet("color: #ffffff; font-size: 13px; font-weight: bold;")
+        self.motor_sub = QLabel("Trigger GPIO 23 relay output directly.")
+        self.motor_sub.setStyleSheet("color: #94a3b8; font-size: 10px;")
         motor_info.addWidget(motor_lbl)
         motor_info.addWidget(self.motor_sub)
         
         motor_layout.addLayout(motor_info, stretch=1)
         
         self.motor_btn = QPushButton("MOTOR OFF")
-        self.motor_btn.setMinimumHeight(44)
-        self.motor_btn.setMinimumWidth(160)
+        self.motor_btn.setMinimumHeight(36)
+        self.motor_btn.setMinimumWidth(130)
         self.motor_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.motor_btn.clicked.connect(self._toggle_motor)
         motor_layout.addWidget(self.motor_btn)
         
-        main_layout.addWidget(self.motor_frame)
+        content_layout.addWidget(self.motor_frame)
         
         # Section 3: Threshold Limit Adjuster
         thresh_frame = QFrame()
         thresh_frame.setStyleSheet("""
             QFrame {
-                background-color: rgba(30, 41, 59, 0.7);
+                background-color: rgba(30, 41, 59, 0.85);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
+                border-radius: 12px;
             }
         """)
         thresh_layout = QHBoxLayout(thresh_frame)
-        thresh_layout.setContentsMargins(20, 16, 20, 16)
+        thresh_layout.setContentsMargins(12, 10, 12, 10)
         
         thresh_info = QVBoxLayout()
-        thresh_lbl = QLabel("Auto Mode PM2.5 Safety Threshold")
-        thresh_lbl.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
-        thresh_sub = QLabel("Set PM2.5 concentration level that automatically triggers motor relay.")
-        thresh_sub.setStyleSheet("color: #94a3b8; font-size: 12px;")
+        thresh_lbl = QLabel("PM2.5 Safety Trigger Limit")
+        thresh_lbl.setStyleSheet("color: #ffffff; font-size: 13px; font-weight: bold;")
+        thresh_sub = QLabel("Concentration level that triggers motor relay.")
+        thresh_sub.setStyleSheet("color: #94a3b8; font-size: 10px;")
         thresh_info.addWidget(thresh_lbl)
         thresh_info.addWidget(thresh_sub)
         
@@ -134,24 +144,27 @@ class ControlTab(QWidget):
         self.spinbox.setSingleStep(10)
         self.spinbox.setValue(200)
         self.spinbox.setSuffix(" µg/m³")
-        self.spinbox.setMinimumHeight(40)
-        self.spinbox.setMinimumWidth(140)
+        self.spinbox.setMinimumHeight(34)
+        self.spinbox.setMinimumWidth(120)
         self.spinbox.setStyleSheet("""
             QSpinBox {
                 background-color: #0f172a;
                 color: #ffffff;
                 border: 2px solid #38bdf8;
-                border-radius: 10px;
-                padding: 4px 10px;
-                font-size: 16px;
+                border-radius: 8px;
+                padding: 2px 6px;
+                font-size: 13px;
                 font-weight: bold;
             }
         """)
         self.spinbox.valueChanged.connect(self._threshold_changed)
         thresh_layout.addWidget(self.spinbox)
         
-        main_layout.addWidget(thresh_frame)
-        main_layout.addStretch()
+        content_layout.addWidget(thresh_frame)
+        content_layout.addStretch()
+        
+        scroll.setWidget(scroll_content)
+        main_layout.addWidget(scroll)
 
     def _toggle_mode(self):
         current_mode = self.monitor.manual_mode
@@ -180,29 +193,29 @@ class ControlTab(QWidget):
                 QPushButton {
                     background-color: #ec4899;
                     color: #ffffff;
-                    font-size: 13px;
+                    font-size: 11px;
                     font-weight: bold;
                     border: none;
-                    border-radius: 12px;
+                    border-radius: 8px;
                 }
             """)
             self.notice_box.setStyleSheet("""
                 QFrame {
                     background-color: rgba(239, 68, 68, 0.2);
-                    border-left: 4px solid #ef4444;
-                    border-radius: 12px;
+                    border-left: 3px solid #ef4444;
+                    border-radius: 10px;
                 }
             """)
             self.notice_title.setText("MANUAL OVERRIDE ACTIVE")
-            self.notice_title.setStyleSheet("color: #ef4444; font-weight: bold; font-size: 13px;")
-            self.notice_body.setText("Automated safety safeguards are OFF. You must manually control the motor relay.")
+            self.notice_title.setStyleSheet("color: #ef4444; font-weight: bold; font-size: 11px;")
+            self.notice_body.setText("Automated safety triggers OFF. Manually control motor relay.")
             
             self.motor_frame.setEnabled(True)
             self.motor_frame.setStyleSheet("""
                 QFrame {
-                    background-color: rgba(30, 41, 59, 0.7);
+                    background-color: rgba(30, 41, 59, 0.85);
                     border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 16px;
+                    border-radius: 12px;
                 }
             """)
         else:
@@ -211,53 +224,53 @@ class ControlTab(QWidget):
                 QPushButton {
                     background-color: #0284c7;
                     color: #ffffff;
-                    font-size: 13px;
+                    font-size: 11px;
                     font-weight: bold;
                     border: none;
-                    border-radius: 12px;
+                    border-radius: 8px;
                 }
             """)
             self.notice_box.setStyleSheet("""
                 QFrame {
                     background-color: rgba(2, 132, 199, 0.2);
-                    border-left: 4px solid #0284c7;
-                    border-radius: 12px;
+                    border-left: 3px solid #0284c7;
+                    border-radius: 10px;
                 }
             """)
             self.notice_title.setText("AUTOMATED SAFETY ENGINE ACTIVE")
-            self.notice_title.setStyleSheet("color: #38bdf8; font-weight: bold; font-size: 13px;")
-            self.notice_body.setText(f"Automated safety triggers activate motor if PM2.5 > {thresh} µg/m³.")
+            self.notice_title.setStyleSheet("color: #38bdf8; font-weight: bold; font-size: 11px;")
+            self.notice_body.setText(f"Automated triggers activate motor if PM2.5 > {thresh} µg/m³.")
             
             self.motor_frame.setEnabled(False)
             self.motor_frame.setStyleSheet("""
                 QFrame {
                     background-color: rgba(30, 41, 59, 0.3);
                     border: 1px solid rgba(255, 255, 255, 0.05);
-                    border-radius: 16px;
+                    border-radius: 12px;
                 }
             """)
 
         if motor:
-            self.motor_btn.setText("MOTOR RELAY: ON")
+            self.motor_btn.setText("RELAY: ON")
             self.motor_btn.setStyleSheet("""
                 QPushButton {
                     background-color: #22c55e;
                     color: #ffffff;
-                    font-size: 13px;
+                    font-size: 11px;
                     font-weight: bold;
                     border: none;
-                    border-radius: 12px;
+                    border-radius: 8px;
                 }
             """)
         else:
-            self.motor_btn.setText("MOTOR RELAY: OFF")
+            self.motor_btn.setText("RELAY: OFF")
             self.motor_btn.setStyleSheet("""
                 QPushButton {
                     background-color: #334155;
                     color: #94a3b8;
-                    font-size: 13px;
+                    font-size: 11px;
                     font-weight: bold;
                     border: none;
-                    border-radius: 12px;
+                    border-radius: 8px;
                 }
             """)
