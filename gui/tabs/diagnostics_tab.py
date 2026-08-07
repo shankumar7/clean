@@ -211,9 +211,9 @@ class DiagnosticsTab(QWidget):
         self.card_vacuum.set_value(str(state.get("vacuum_health_pct", 92)))
         self.card_filter.set_value(str(state.get("filter_health_pct", 85)))
         
-        # Filter Precautions (100 hours = 360,000 seconds)
-        FILTER_LIFESPAN_SEC = 100 * 3600
-        if fil_sec > FILTER_LIFESPAN_SEC:
+        # Filter Precaution based on health percentage
+        filter_health = state.get("filter_health_pct", 85)
+        if filter_health < 20:
             self.filter_lbl.setText("⚠️ Filter Status: EXPIRED - PLEASE REPLACE")
             self.filter_lbl.setStyleSheet("color: #ef4444; font-weight: bold;")
         else:
