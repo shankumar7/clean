@@ -16,12 +16,12 @@ class AirQualityMonitor:
         self.pm1_0 = 0
         self.pm2_5 = 0
         self.pm10 = 0
-        self.battery_pct = 0
+        self.battery_pct = 93
         self.last_update_time = 0
         
         # Runtime Data
-        self.motor_runtime_sec = 0
-        self.filter_runtime_sec = 0
+        self.motor_runtime_sec = 960   # Default: 16 minutes
+        self.filter_runtime_sec = 900   # Default: 15 minutes
         self.runtime_file = "runtime_data.json"
         self._load_runtimes()
         
@@ -49,8 +49,8 @@ class AirQualityMonitor:
             try:
                 with open(self.runtime_file, "r") as f:
                     data = json.load(f)
-                    self.motor_runtime_sec = data.get("motor_runtime_sec", 0)
-                    self.filter_runtime_sec = data.get("filter_runtime_sec", 0)
+                    self.motor_runtime_sec = data.get("motor_runtime_sec", 960)
+                    self.filter_runtime_sec = data.get("filter_runtime_sec", 900)
             except Exception as e:
                 print(f"[AirQualityMonitor] Error loading runtimes: {e}")
                 
