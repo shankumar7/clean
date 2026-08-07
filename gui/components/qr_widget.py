@@ -82,25 +82,15 @@ class QRCodeWidget(QWidget):
 
     def _render_matrix(self, matrix, size, quiet_zone):
         grid_size = len(matrix)
-        pixmap = QPixmap(size, size)
-        pixmap.fill(QColor("#ffffff"))
-        
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
-        
         total_modules = grid_size + (quiet_zone * 2)
-        cell_size = float(size) / total_modules
         
-        painter.setBrush(QBrush(QColor("#000000")))
-        painter.setPen(Qt.PenStyle.NoPen)
+        img = QImage(total_modules, total_modules, QImage.Format.Format_RGB32)
+        img.fill(QColor("#ffffff"))
         
         for r in range(grid_size):
             for c in range(len(matrix[r])):
                 if matrix[r][c]:
-                    x = (c + quiet_zone) * cell_size
-                    y = (r + quiet_zone) * cell_size
-                    # Adding a slight overlap factor to prevent gaps
-                    painter.drawRect(int(x), int(y), int(cell_size + 1.5), int(cell_size + 1.5))
+                    img.setPixelColor(c + quiet_zone, r + quiet_zone, QColor("#000000"))
                     
-        painter.end()
-        return pixmap
+        # Scale the perfectly proportioned QImage to the final size using Nearest Neighbor (FastTransformation)
+        return QPixmap.fromImage(img).scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
