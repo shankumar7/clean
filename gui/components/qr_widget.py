@@ -74,7 +74,27 @@ class QRCodeWidget(QWidget):
             except Exception as e:
                 print(f"[QRCodeWidget] qrcode library error: {e}")
 
+        # Fallback: pure Python generator (zero-dependency qrcodegen)
+        try:
+            from core.qr_gen import generate_qr_matrix
+            matrix = generate_qr_matrix(text)
+            grid_size = len(matrix)
+            quiet_zone = 4
+            total_modules = grid_size + (quiet_zone * 2)
+            
+            img = QImage(total_modules, total_modules, QImage.Format.Format_RGB32)
+            img.fill(QColor("#ffffff"))
+            
+            for r in range(grid_size):
+                for c in range(len(matrix[r])):
+                    if matrix[r][c]:
+                        img.setPixelColor(c + quiet_zone, r + quiet_zone, QColor("#000000"))
+                        
+            return QPixmap.fromImage(img).scaled(180, 180, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
+        except Exception as e:
+            print(f"[QRCodeWidget] Fallback QR generation error: {e}")
+
         # Fallback: simple placeholder
-        fallback = QPixmap(160, 160)
+        fallback = QPixmap(180, 180)
         fallback.fill(QColor("#ffffff"))
         return fallback
