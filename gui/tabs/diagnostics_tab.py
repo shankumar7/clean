@@ -49,8 +49,8 @@ class DiagnosticsTab(QWidget):
         grid_layout.setSpacing(6)
         
         self.card_battery = MetricCard("Battery Level", "%")
-        self.card_vacuum = MetricCard("Vacuum Runtime", "")
-        self.card_filter = MetricCard("Filter Runtime", "")
+        self.card_vacuum = MetricCard("Vacuum Health", "%")
+        self.card_filter = MetricCard("Filter Health", "%")
         
         self.card_gpio = MetricCard("GPIO Relay Pin", "")
         self.card_gpio.set_value(f"GPIO {config.RELAY_GPIO_PIN}")
@@ -208,16 +208,8 @@ class DiagnosticsTab(QWidget):
         bat = state.get("battery_pct", 0)
         self.card_battery.set_value(str(bat))
         
-        def format_runtime(sec):
-            hrs, rem = divmod(sec, 3600)
-            mins = rem // 60
-            return f"{hrs}h {mins:02d}m"
-            
-        vac_sec = state.get("motor_runtime_sec", 0)
-        fil_sec = state.get("filter_runtime_sec", 0)
-        
-        self.card_vacuum.set_value(format_runtime(vac_sec))
-        self.card_filter.set_value(format_runtime(fil_sec))
+        self.card_vacuum.set_value(str(state.get("vacuum_health_pct", 92)))
+        self.card_filter.set_value(str(state.get("filter_health_pct", 85)))
         
         # Filter Precautions (100 hours = 360,000 seconds)
         FILTER_LIFESPAN_SEC = 100 * 3600

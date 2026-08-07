@@ -17,6 +17,8 @@ class AirQualityMonitor:
         self.pm2_5 = 0
         self.pm10 = 0
         self.battery_pct = 63
+        self.vacuum_health_pct = 92
+        self.filter_health_pct = 85
         self.last_update_time = 0
         
         # Runtime Data
@@ -201,6 +203,8 @@ class AirQualityMonitor:
                 "manual": 1 if self.manual_mode else 0,
                 "pm25_threshold": self.pm25_threshold,
                 "battery_pct": self.battery_pct,
+                "vacuum_health_pct": self.vacuum_health_pct,
+                "filter_health_pct": self.filter_health_pct,
                 "motor_runtime_sec": self.motor_runtime_sec,
                 "filter_runtime_sec": self.filter_runtime_sec,
                 "aqi_label": aqi["label"],
