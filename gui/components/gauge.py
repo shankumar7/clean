@@ -63,8 +63,8 @@ class AQIGaugeWidget(QWidget):
 
         # Center text with theme-aware text color
         painter.setPen(self.text_color)
-        font = QFont("Outfit", 14, QFont.Weight.Bold)
+        font = QFont("Outfit", 12, QFont.Weight.Bold)
         painter.setFont(font)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self.value}\nµg/m³")
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"PM 2.5\n{self.value}\nµg/m³")
 
         painter.end()

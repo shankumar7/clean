@@ -63,7 +63,7 @@ class QRCodeWidget(QWidget):
                     version=2,
                     error_correction=qrcode.constants.ERROR_CORRECT_L,
                     box_size=6,
-                    border=2,
+                    border=4,
                 )
                 qr.add_data(text)
                 qr.make(fit=True)
@@ -75,7 +75,7 @@ class QRCodeWidget(QWidget):
                 qimg = QImage()
                 qimg.loadFromData(buffer.getvalue())
                 pixmap = QPixmap.fromImage(qimg)
-                return pixmap.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                return pixmap.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
             except Exception as e:
                 print(f"[QRCodeWidget] Standard qrcode package error: {e}. Switching to pure Python generator.")
 

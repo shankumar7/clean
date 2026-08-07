@@ -74,7 +74,7 @@ class QRCodeTab(QWidget):
         card_layout.setSpacing(10)
         
         # Left side: QR Code Widget
-        initial_url = f"http://{self.ip_addresses[0]}:{config.SERVER_PORT}"
+        initial_url = f"http://{self.ip_addresses[0]}:{config.SERVER_PORT}/"
         self.qr_widget = QRCodeWidget(url=initial_url)
         card_layout.addWidget(self.qr_widget, stretch=0)
         
@@ -165,20 +165,20 @@ class QRCodeTab(QWidget):
         self.ip_combo.blockSignals(True)
         self.ip_combo.clear()
         for ip in self.ip_addresses:
-            url = f"http://{ip}:{config.SERVER_PORT}"
+            url = f"http://{ip}:{config.SERVER_PORT}/"
             self.ip_combo.addItem(url)
         self.ip_combo.blockSignals(False)
 
     def _on_ip_selected(self, index):
         if index >= 0 and index < len(self.ip_addresses):
-            selected_url = f"http://{self.ip_addresses[index]}:{config.SERVER_PORT}"
+            selected_url = f"http://{self.ip_addresses[index]}:{config.SERVER_PORT}/"
             self.qr_widget.set_url(selected_url)
 
     def _refresh_network_ips(self):
         self.ip_addresses = get_network_ip_addresses()
         self._populate_ips()
         if self.ip_addresses:
-            selected_url = f"http://{self.ip_addresses[0]}:{config.SERVER_PORT}"
+            selected_url = f"http://{self.ip_addresses[0]}:{config.SERVER_PORT}/"
             self.qr_widget.set_url(selected_url)
 
     def update_ui(self, state):

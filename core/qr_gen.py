@@ -191,12 +191,12 @@ def generate_qr_matrix(text):
     # Format Information bits for Version 2, Mask 0, ECC Level L: 0b111011111000100
     format_bits = 0b111011111000100
     format_coords = [
-        (8,0), (8,1), (8,2), (8,3), (8,4), (8,5), (8,7), (8,8),
-        (7,8), (5,8), (4,8), (3,8), (2,8), (1,8), (0,8)
+        (0,8), (1,8), (2,8), (3,8), (4,8), (5,8), (7,8), (8,8),
+        (8,7), (8,5), (8,4), (8,3), (8,2), (8,1), (8,0)
     ]
     format_coords_2 = [
-        (size-1,8), (size-2,8), (size-3,8), (size-4,8), (size-5,8), (size-6,8), (size-7,8),
-        (8,size-8), (8,size-7), (8,size-6), (8,size-5), (8,size-4), (8,size-3), (8,size-2), (8,size-1)
+        (8,size-1), (8,size-2), (8,size-3), (8,size-4), (8,size-5), (8,size-6), (8,size-7),
+        (size-7,8), (size-6,8), (size-5,8), (size-4,8), (size-3,8), (size-2,8), (size-1,8), (size-1,8)
     ]
 
     for i in range(15):
