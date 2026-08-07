@@ -25,8 +25,6 @@ class QRCodeWidget(QWidget):
         
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setFixedSize(180, 180)
-        self.image_label.setScaledContents(True)
         self.image_label.setStyleSheet("""
             QLabel {
                 background-color: #ffffff;
@@ -54,13 +52,13 @@ class QRCodeWidget(QWidget):
         """)
 
     def _generate_qr_pixmap(self, text):
-        """Generate QR code at native resolution — no manual scaling."""
+        """Generate QR code using the qrcode library's PIL renderer."""
         if QRCODE_AVAILABLE:
             try:
                 qr = qrcode.QRCode(
                     version=2,
                     error_correction=qrcode.constants.ERROR_CORRECT_H,
-                    box_size=8,
+                    box_size=6,
                     border=4,
                 )
                 qr.add_data(text)
@@ -74,34 +72,9 @@ class QRCodeWidget(QWidget):
                 qimg.loadFromData(buffer.getvalue())
                 return QPixmap.fromImage(qimg)
             except Exception as e:
-                print(f"[QRCodeWidget] qrcode library error: {e}. Using fallback.")
+                print(f"[QRCodeWidget] qrcode library error: {e}")
 
-        # Fallback: pure Python generator
-        try:
-            from core.qr_gen import generate_qr_matrix
-            matrix = generate_qr_matrix(text)
-            grid_size = len(matrix)
-            quiet_zone = 4
-            total_modules = grid_size + (quiet_zone * 2)
-            box = 8
-            img_size = total_modules * box
-            
-            img = QImage(img_size, img_size, QImage.Format.Format_RGB32)
-            img.fill(QColor("#ffffff"))
-            
-            for r in range(grid_size):
-                for c in range(len(matrix[r])):
-                    if matrix[r][c]:
-                        px = (c + quiet_zone) * box
-                        py = (r + quiet_zone) * box
-                        for dy in range(box):
-                            for dx in range(box):
-                                img.setPixelColor(px + dx, py + dy, QColor("#000000"))
-                        
-            return QPixmap.fromImage(img)
-        except Exception as e:
-            print(f"[QRCodeWidget] Fallback QR error: {e}")
-            
-        fallback = QPixmap(100, 100)
+        # Fallback: simple placeholder
+        fallback = QPixmap(160, 160)
         fallback.fill(QColor("#ffffff"))
         return fallback

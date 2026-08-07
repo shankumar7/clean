@@ -92,6 +92,7 @@ class AnalysisTab(QWidget):
             self.plot_widget.setMouseEnabled(x=False, y=False)
             self.plot_widget.setMenuEnabled(False)
             
+            self.pm1_curve = self.plot_widget.plot(pen=pg.mkPen(color='#a3e635', width=2), name="PM1.0")
             self.pm25_curve = self.plot_widget.plot(pen=pg.mkPen(color='#00b4d8', width=2), name="PM2.5")
             self.pm10_curve = self.plot_widget.plot(pen=pg.mkPen(color='#ec4899', width=2), name="PM10")
             chart_layout.addWidget(self.plot_widget)
@@ -155,8 +156,10 @@ class AnalysisTab(QWidget):
         if PYQTGRAPH_AVAILABLE and "history" in state:
             history = state["history"]
             if history:
+                y_pm1 = [item["pm1_0"] for item in history]
                 y_pm25 = [item["pm2_5"] for item in history]
                 y_pm10 = [item["pm10"] for item in history]
                 x = list(range(len(history)))
+                self.pm1_curve.setData(x, y_pm1)
                 self.pm25_curve.setData(x, y_pm25)
                 self.pm10_curve.setData(x, y_pm10)
