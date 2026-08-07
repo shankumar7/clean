@@ -56,61 +56,51 @@ class QRCodeWidget(QWidget):
         """)
 
     def _generate_qr_pixmap(self, text, size=160):
-        # Method 1: Try qrcode + Pillow package
         if QRCODE_AVAILABLE:
             try:
                 qr = qrcode.QRCode(
                     version=2,
                     error_correction=qrcode.constants.ERROR_CORRECT_L,
                     box_size=6,
-                    border=4,
+                    border=0,
                 )
                 qr.add_data(text)
                 qr.make(fit=True)
-                
-                img = qr.make_image(fill_color="black", back_color="white")
-                buffer = io.BytesIO()
-                img.save(buffer, format="PNG")
-                
-                qimg = QImage()
-                qimg.loadFromData(buffer.getvalue())
-                pixmap = QPixmap.fromImage(qimg)
-                return pixmap.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
+                return self._render_matrix(qr.modules, size, quiet_zone=4)
             except Exception as e:
                 print(f"[QRCodeWidget] Standard qrcode package error: {e}. Switching to pure Python generator.")
 
-        # Method 2: Pure Python Built-in Matrix Generator (Zero Dependencies)
         try:
             matrix = generate_qr_matrix(text)
-            grid_size = len(matrix)  # 25x25
-            
-            # Render QR matrix directly onto QPixmap using QPainter
-            pixmap = QPixmap(size, size)
-            pixmap.fill(QColor("#ffffff"))
-            
-            painter = QPainter(pixmap)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
-            
-            quiet_zone = 2  # 2 modules quiet zone margin
-            total_modules = grid_size + (quiet_zone * 2)
-            cell_size = float(size) / total_modules
-            
-            painter.setBrush(QBrush(QColor("#000000")))
-            painter.setPen(Qt.PenStyle.NoPen)
-            
-            for r in range(grid_size):
-                for c in range(grid_size):
-                    if matrix[r][c]:
-                        x = (c + quiet_zone) * cell_size
-                        y = (r + quiet_zone) * cell_size
-                        # Draw module square with slight overlap to prevent gaps
-                        painter.drawRect(int(x), int(y), int(cell_size + 1), int(cell_size + 1))
-                        
-            painter.end()
-            return pixmap
+            return self._render_matrix(matrix, size, quiet_zone=4)
         except Exception as e:
             print(f"[QRCodeWidget] Pure Python QR rendering error: {e}")
             
         fallback = QPixmap(size, size)
         fallback.fill(QColor("#ffffff"))
         return fallback
+
+    def _render_matrix(self, matrix, size, quiet_zone):
+        grid_size = len(matrix)
+        pixmap = QPixmap(size, size)
+        pixmap.fill(QColor("#ffffff"))
+        
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+        
+        total_modules = grid_size + (quiet_zone * 2)
+        cell_size = float(size) / total_modules
+        
+        painter.setBrush(QBrush(QColor("#000000")))
+        painter.setPen(Qt.PenStyle.NoPen)
+        
+        for r in range(grid_size):
+            for c in range(len(matrix[r])):
+                if matrix[r][c]:
+                    x = (c + quiet_zone) * cell_size
+                    y = (r + quiet_zone) * cell_size
+                    # Adding a slight overlap factor to prevent gaps
+                    painter.drawRect(int(x), int(y), int(cell_size + 1.5), int(cell_size + 1.5))
+                    
+        painter.end()
+        return pixmap
